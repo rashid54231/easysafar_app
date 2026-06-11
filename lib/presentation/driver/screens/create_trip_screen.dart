@@ -17,8 +17,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   final _driverNameController = TextEditingController();
   final _driverPhoneController = TextEditingController();
   final _vehicleNameController = TextEditingController();
-  final _vehicleColorController = TextEditingController();
-  final _vehicleModelController = TextEditingController();
+
+  // REMOVED: Model/Year aur Color ke controllers yahan se hata diye hain
 
   DateTime? _selectedTime;
   bool _isLoading = false;
@@ -37,9 +37,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     }
   }
 
-  // Trip Publish Function (Updated to stay on screen)
+  // Trip Publish Function
   Future<void> _publishTrip() async {
-    // Validation
+    // Validation (Updated: Model aur Color ki check yahan se hata di hai)
     if (_fromController.text.isEmpty || _toController.text.isEmpty ||
         _priceController.text.isEmpty || _seatsController.text.isEmpty ||
         _driverNameController.text.isEmpty || _driverPhoneController.text.isEmpty ||
@@ -71,13 +71,22 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         'driver_name': _driverNameController.text.trim(),
         'driver_phone': _driverPhoneController.text.trim(),
         'vehicle_name': _vehicleNameController.text.trim(),
-        'vehicle_model': _vehicleModelController.text.trim(),
-        'vehicle_color': _vehicleColorController.text.trim(),
+        'vehicle_model': '', // Safe side: Empty string bhej rahe hain
+        'vehicle_color': '', // Safe side: Empty string bhej rahe hain
       });
 
       if (mounted) {
-        // Loading band karein taake button wapis aa jaye
         setState(() => _isLoading = false);
+
+        // Fields ko clear kar dete hain taake naya trip daala ja sakay
+        _fromController.clear();
+        _toController.clear();
+        _priceController.clear();
+        _seatsController.clear();
+        _driverNameController.clear();
+        _driverPhoneController.clear();
+        _vehicleNameController.clear();
+        _selectedTime = null;
 
         // Success Message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -87,8 +96,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             duration: Duration(seconds: 3),
           ),
         );
-
-        // Note: Navigator.pop() yahan se hata diya hai taake white screen na aaye
       }
     } catch (e) {
       if (mounted) {
@@ -101,6 +108,18 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         );
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _fromController.dispose();
+    _toController.dispose();
+    _priceController.dispose();
+    _seatsController.dispose();
+    _driverNameController.dispose();
+    _driverPhoneController.dispose();
+    _vehicleNameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -128,13 +147,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             _buildTextField(_driverPhoneController, "Contact Number", Icons.phone, type: TextInputType.phone),
             _buildTextField(_vehicleNameController, "Vehicle Name (e.g. Corolla)", Icons.directions_car),
 
-            Row(
-              children: [
-                Expanded(child: _buildTextField(_vehicleModelController, "Model/Year", Icons.grid_3x3)),
-                const SizedBox(width: 10),
-                Expanded(child: _buildTextField(_vehicleColorController, "Vehicle Color", Icons.palette)),
-              ],
-            ),
+            // REMOVED: Model/Year aur Vehicle Color wala Row yahan se poori tarah delete kar diya hai
 
             const Divider(height: 40),
             const Text("Seats & Pricing", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -149,7 +162,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
             const SizedBox(height: 20),
             ListTile(
-              title: Text(_selectedTime == null ? "Select Departure Time" : "Departure: ${_selectedTime!.hour}:${_selectedTime!.minute}"),
+              title: Text(_selectedTime == null ? "Select Departure Time" : "Departure: ${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}"),
               trailing: const Icon(Icons.access_time, color: Colors.blue),
               tileColor: Colors.blue[50],
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

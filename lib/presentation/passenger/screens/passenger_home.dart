@@ -156,10 +156,24 @@ class _TripsListBodyState extends State<TripsListBody> {
   String searchQuery = "";
   final _supabase = Supabase.instance.client;
 
-  // NEW: Booking Form Sheet (Updated with clean logic)
+  String _formatTime(String? timeStr) {
+    if (timeStr == null || timeStr.isEmpty) return "TBD";
+    try {
+      final dateTime = DateTime.parse(timeStr);
+      final hour = dateTime.hour > 12 ? dateTime.hour - 12 : (dateTime.hour == 0 ? 12 : dateTime.hour);
+      final minute = dateTime.minute.toString().padLeft(2, '0');
+      final period = dateTime.hour >= 12 ? "PM" : "AM";
+      return "$hour:$minute $period";
+    } catch (e) {
+      return "TBD";
+    }
+  }
+
+  // --- UPDATED BOOKING SHEET: Phone Number Input Add Kiya Hai ---
   void _showBookingSheet(Map<String, dynamic> trip) {
     int selectedSeats = 1;
     final TextEditingController pickupController = TextEditingController();
+    final TextEditingController phoneController = TextEditingController(); // ✅ Passenger phone controller
     final int maxSeats = trip['available_seats'];
     final int pricePerSeat = trip['price_per_seat'] ?? 0;
 
@@ -184,6 +198,20 @@ class _TripsListBodyState extends State<TripsListBody> {
                   labelText: "Pickup Location",
                   labelStyle: const TextStyle(color: Colors.white70),
                   prefixIcon: const Icon(Icons.my_location, color: Colors.cyanAccent),
+                  enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.white24), borderRadius: BorderRadius.circular(12)),
+                  focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.cyanAccent), borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 15),
+              // ✅ CONTACT NUMBER FIELD: Passenger yahan apna number likhega
+              TextField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: "Your Contact Number",
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  prefixIcon: const Icon(Icons.phone_android_rounded, color: Colors.cyanAccent),
                   enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.white24), borderRadius: BorderRadius.circular(12)),
                   focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.cyanAccent), borderRadius: BorderRadius.circular(12)),
                 ),
@@ -226,8 +254,11 @@ class _TripsListBodyState extends State<TripsListBody> {
                   onPressed: () {
                     if (pickupController.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please enter pickup location")));
+                    } else if (phoneController.text.trim().isEmpty) {
+                      // Number mandatory kar diya hai check lagakar
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please enter your contact number")));
                     } else {
-                      _confirmBooking(trip, selectedSeats, pickupController.text.trim());
+                      _confirmBooking(trip, selectedSeats, pickupController.text.trim(), phoneController.text.trim());
                     }
                   },
                   child: const Text("Confirm Booking", style: TextStyle(color: Color(0xFF0D1117), fontSize: 18, fontWeight: FontWeight.bold)),
@@ -241,30 +272,29 @@ class _TripsListBodyState extends State<TripsListBody> {
     );
   }
 
-  // Database confirmation logic (Updated to use your new columns)
-  Future<void> _confirmBooking(Map<String, dynamic> trip, int seats, String pickup) async {
+  // --- UPDATED INSERT: passenger_phone ko query me pass kar dia hai ---
+  Future<void> _confirmBooking(Map<String, dynamic> trip, int seats, String pickup, String phone) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 
     try {
-      // 1. Insert into bookings table
       await _supabase.from('bookings').insert({
         'trip_id': trip['id'],
         'passenger_id': userId,
         'seats_booked': seats,
         'pickup_location': pickup,
+        'passenger_phone': phone, // ✅ Naya column data pass ho raha hai SQL k mutabiq
         'total_price': seats * (trip['price_per_seat'] ?? 0),
         'status': 'pending',
       });
 
-      // 2. Update available seats
       await _supabase.from('trips').update({
         'available_seats': trip['available_seats'] - seats
       }).eq('id', trip['id']);
 
       if (mounted) {
-        Navigator.pop(context); // Close sheet
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Booking Successful!")));
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Booking Successful! Go to Chats tab to contact driver."), backgroundColor: Colors.green));
       }
     } catch (e) {
       if (mounted) {
@@ -323,12 +353,35 @@ class _TripsListBodyState extends State<TripsListBody> {
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(top: 15, left: 20),
+                          padding: const EdgeInsets.only(top: 15, left: 20, right: 20),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Icon(Icons.calendar_month, size: 14, color: Colors.cyanAccent),
-                              const SizedBox(width: 5),
-                              Text(trip['departure_date'] ?? "TBD", style: const TextStyle(color: Colors.white70)),
+                              Row(
+                                children: [
+                                  const Icon(Icons.calendar_month, size: 14, color: Colors.cyanAccent),
+                                  const SizedBox(width: 5),
+                                  Text(trip['departure_date'] ?? "Today", style: const TextStyle(color: Colors.white70)),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[900]!.withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.cyanAccent.withOpacity(0.3)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.access_time_rounded, size: 14, color: Colors.cyanAccent),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      _formatTime(trip['departure_time']),
+                                      style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -364,7 +417,7 @@ class _TripsListBodyState extends State<TripsListBody> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(trip['driver_name'] ?? "Driver", style: const TextStyle(color: Colors.white)),
-                                    Text("${trip['vehicle_name'] ?? 'Car'} • ${trip['vehicle_color'] ?? ''}", style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                                    Text("${trip['vehicle_name'] ?? 'Car'}", style: const TextStyle(color: Colors.white54, fontSize: 11)),
                                   ],
                                 ),
                               ),
@@ -407,64 +460,78 @@ class PassengerChatListScreen extends StatelessWidget {
 
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: Supabase.instance.client
-          .from('messages')
+          .from('bookings')
           .stream(primaryKey: ['id'])
-          .order('created_at', ascending: false),
+          .eq('passenger_id', myId),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-        final myMessages = snapshot.data!.where((m) =>
-        m['sender_id'] == myId || m['receiver_id'] == myId
-        ).toList();
-
-        final uniqueChats = <String, Map<String, dynamic>>{};
-        for (var msg in myMessages) {
-          String otherId = msg['sender_id'] == myId ? msg['receiver_id'] : msg['sender_id'];
-          if (!uniqueChats.containsKey(otherId)) {
-            uniqueChats[otherId] = msg;
-          }
+        final myBookings = snapshot.data!;
+        if (myBookings.isEmpty) {
+          return const Center(child: Text("No bookings yet. Book a ride to chat!", style: TextStyle(color: Colors.white60, fontSize: 15)));
         }
 
-        final chatList = uniqueChats.values.toList();
-        if (chatList.isEmpty) return const Center(child: Text("No messages yet", style: TextStyle(color: Colors.white60)));
+        final uniqueTripIds = myBookings.map((b) => b['trip_id'].toString()).toSet().toList();
 
         return ListView.builder(
-          itemCount: chatList.length,
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          itemCount: uniqueTripIds.length,
           itemBuilder: (context, index) {
-            final chat = chatList[index];
-            String otherId = chat['sender_id'] == myId ? chat['receiver_id'] : chat['sender_id'];
-            String tripId = chat['trip_id'].toString();
+            final currentTripId = uniqueTripIds[index];
 
-            return FutureBuilder(
-              future: Future.wait([
-                Supabase.instance.client.from('profiles').select().eq('id', otherId).maybeSingle(),
-                Supabase.instance.client.from('trips').select('driver_phone').eq('id', tripId).maybeSingle(),
-              ]),
-              builder: (context, AsyncSnapshot<List<dynamic>> combinedSnap) {
-                if (combinedSnap.connectionState == ConnectionState.waiting) {
-                  return const ListTile(title: Text("Loading...", style: TextStyle(color: Colors.white54)));
+            return FutureBuilder<Map<String, dynamic>?>(
+              future: Supabase.instance.client
+                  .from('trips')
+                  .select('id, driver_id, driver_name, driver_phone, profiles:driver_id(full_name, phone_number, avatar_url)')
+                  .eq('id', currentTripId)
+                  .maybeSingle(),
+              builder: (context, tripSnapshot) {
+                if (!tripSnapshot.hasData || tripSnapshot.data == null) {
+                  return const SizedBox.shrink();
                 }
 
-                final profileData = combinedSnap.data?[0];
-                final tripData = combinedSnap.data?[1];
+                final tripData = tripSnapshot.data!;
+                final driverProfile = tripData['profiles'] as Map<String, dynamic>?;
 
-                String name = profileData?['full_name'] ?? "User";
-                String? phone = tripData?['driver_phone']?.toString();
+                String driverName = tripData['driver_name'] ?? driverProfile?['full_name'] ?? "Driver";
 
-                return ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.person)),
-                  title: Text(name, style: const TextStyle(color: Colors.white)),
-                  subtitle: Text(chat['content'] ?? "",
-                      style: const TextStyle(color: Colors.white70),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis
+                String driverPhone = "No number";
+                if (tripData['driver_phone'] != null && tripData['driver_phone'].toString().trim().isNotEmpty) {
+                  driverPhone = tripData['driver_phone'].toString();
+                } else if (driverProfile != null && driverProfile['phone_number'] != null) {
+                  driverPhone = driverProfile['phone_number'].toString();
+                }
+
+                String? avatarUrl = driverProfile?['avatar_url'];
+                String driverUid = tripData['driver_id'].toString();
+
+                return Card(
+                  color: const Color(0xFF1C2331),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue[900],
+                      backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                      child: avatarUrl == null ? const Icon(Icons.person, color: Colors.white) : null,
+                    ),
+                    title: Text(driverName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    subtitle: Text("Phone: $driverPhone", style: const TextStyle(color: Colors.cyanAccent, fontSize: 13)),
+                    trailing: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.cyanAccent),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                            tripId: currentTripId,
+                            receiverId: driverUid,
+                            receiverName: driverName,
+                            driverPhone: driverPhone == "No number" ? null : driverPhone,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
-                    tripId: tripId,
-                    receiverId: otherId,
-                    receiverName: name,
-                    driverPhone: phone,
-                  ))),
                 );
               },
             );
@@ -483,7 +550,10 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
-  void initState() { super.initState(); _markAllAsRead(); }
+  void initState() {
+    super.initState();
+    _markAllAsRead();
+  }
 
   Future<void> _markAllAsRead() async {
     final user = Supabase.instance.client.auth.currentUser;
@@ -502,6 +572,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final myNotes = snapshot.data!.where((n) => n['user_id'] == userId).toList();
+          if (myNotes.isEmpty) {
+            return const Center(child: Text("No notifications yet", style: TextStyle(color: Colors.white60)));
+          }
           return ListView.builder(
             itemCount: myNotes.length,
             itemBuilder: (context, index) {

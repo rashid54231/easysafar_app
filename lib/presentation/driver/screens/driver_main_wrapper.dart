@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'driver_dashboard.dart';
 import 'create_trip_screen.dart';
-import 'vehicle_reg_screen.dart';
 import 'earnings_screen.dart';
 import 'driver_profile_screen.dart';
 import 'driver_chat_list_screen.dart';
@@ -18,13 +17,13 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
   int _selectedIndex = 0;
   final _supabase = Supabase.instance.client;
 
+  // ✅ VEHICLE REG SCREEN KO DELETED/REMOVED
   final List<Widget> _screens = [
-    const DriverDashboard(),
-    const CreateTripScreen(),
-    const DriverChatListScreen(),
-    const EarningsScreen(),
-    const VehicleRegScreen(),
-    const DriverProfileScreen(),
+    const DriverDashboard(),      // Index 0
+    const CreateTripScreen(),     // Index 1
+    const DriverChatListScreen(), // Index 2
+    const EarningsScreen(),       // Index 3
+    const DriverProfileScreen(),  // Index 4 (Pehle yeh 5 par thi)
   ];
 
   @override
@@ -60,21 +59,16 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
                   activeIcon: Icons.add_circle,
                   label: "Post Trip",
                 ),
-                _buildChatNavItem(driverId),
+                _buildChatNavItem(driverId), // Index 2 automatically handled inside
                 _buildNavItem(
                   index: 3,
                   icon: Icons.account_balance_wallet_outlined,
                   activeIcon: Icons.account_balance_wallet,
                   label: "Wallet",
                 ),
+                // ✅ VEHICLE NAV ITEM POLISHED AND REMOVED FROM HERE
                 _buildNavItem(
-                  index: 4,
-                  icon: Icons.drive_eta_outlined,
-                  activeIcon: Icons.drive_eta,
-                  label: "Vehicle",
-                ),
-                _buildNavItem(
-                  index: 5,
+                  index: 4, // Index changed from 5 to 4
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
                   label: "Profile",
