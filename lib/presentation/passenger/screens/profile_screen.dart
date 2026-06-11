@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/constants/app_colors.dart'; // Aapke project ke rangon ke liye
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,11 +16,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
   String? _imageUrl;
   String? _fullName;
+  final _nameController = TextEditingController(); // Name edit karne ke liye controller
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserProfile() async {
@@ -35,10 +43,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _imageUrl = data['avatar_url'];
           _fullName = data['full_name'];
+          _nameController.text = _fullName ?? ""; // Controller mein purana naam set karna
         });
       }
     } catch (e) {
       debugPrint("Error loading profile: $e");
+    }
+  }
+
+  // --- EDIT NAME FUNCTIONALITY (Naya Function) ---
+  void _showEditProfileDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom, // Keyboard ke upar dikhane ke liye
+            top: 20,
+            left: 20,
+            right: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                "Update Full Name",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: "Full Name",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _updateProfileName,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[900],
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text("Save Changes", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _updateProfileName() async {
+    if (_nameController.text.trim().isEmpty) return;
+
+    Navigator.pop(context); // Dialog band karne ke liye
+    setState(() => _isLoading = true);
+
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      await supabase.from('profiles').update({
+        'full_name': _nameController.text.trim(),
+      }).eq('id', user.id);
+
+      setState(() {
+        _fullName = _nameController.text.trim();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Name Updated Successfully!"), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      debugPrint("Update Name Error: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -97,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // --- TOP PROFILE HEADER ---
           Stack(
             clipBehavior: Clip.none,
-            alignment: Alignment.center, // ✅ Fixed: 'Center' ki jagah 'Alignment.center' kiya
+            alignment: Alignment.center,
             children: [
               Container(
                 height: 140,
@@ -185,20 +276,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
                   ),
-                  child: Column(
-                    children: [
-                      _buildOptionTile(Icons.person_outline, "Edit Profile", Colors.blue),
-                      const Divider(height: 1, indent: 50),
-                      _buildOptionTile(Icons.notifications_none_rounded, "Notifications", Colors.orange),
-                      const Divider(height: 1, indent: 50),
-                      _buildOptionTile(Icons.privacy_tip_outlined, "Privacy & Security", Colors.green),
-                      const Divider(height: 1, indent: 50),
-                      _buildOptionTile(Icons.help_center_outlined, "Help Center", Colors.purple),
-                    ],
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                      child: const Icon(Icons.person_outline, color: Colors.blue, size: 22),
+                    ),
+                    title: const Text("Edit Profile Name", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                    onTap: _showEditProfileDialog, // 👈 Ab ye function call hoga click karne par
                   ),
                 ),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
 
                 // --- LOGOUT ---
                 SizedBox(
@@ -222,20 +313,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildOptionTile(IconData icon, String title, Color color) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: color, size: 22),
-      ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-      trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-      onTap: () {},
     );
   }
 }

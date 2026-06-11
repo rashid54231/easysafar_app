@@ -1,9 +1,6 @@
 name: easysafar
 description: "A professional transport booking application for Gilgit-Baltistan routes."
-
-# Is line ko mat chhairiye ga, ye Flutter version control karti hai
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
@@ -13,33 +10,32 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # --- Backend & Database ---
-  supabase_flutter: ^2.0.2      # Auth, Database, aur Real-time updates ke liye
+  # Backend & Database
+  supabase_flutter: ^2.0.2
 
-  # --- UI & Styling ---
-  google_fonts: ^6.1.0          # Professional typography ke liye
-  flutter_svg: ^2.0.10          # SVG icons handle karne ke liye
-  font_awesome_flutter: ^10.7.0 # Mazeed behtar icons ke liye
+  # UI & Styling
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.10
+  font_awesome_flutter: ^10.7.0
   cupertino_icons: ^1.0.6
 
-  # --- Utilities ---
-  intl: ^0.19.0                 # Date aur Currency formatting ke liye (Rs. format)
-  provider: ^6.1.1              # State management ke liye (agar zarurat paray)
+  # Utilities
+  intl: ^0.19.0
+  provider: ^6.1.1
 
-  # --- Image & Storage (Naya Add Kiya Gaya) ---
-  image_picker: ^1.0.7          # Gallery se profile picture pick karne ke liye
+  # Image & Storage
+  image_picker: ^1.0.7
   url_launcher: ^6.3.2
+
+  # Live Location & Maps
+  google_maps_flutter: ^2.5.3
+  geolocator: ^10.1.0
+  permission_handler: ^11.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
 
-# --- Assets & Fonts Setup ---
 flutter:
   uses-material-design: true
-
-  # Agar aapne icons ya images folder banaya hai to yahan uncomment karein:
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
