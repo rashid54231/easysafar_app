@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'presentation/providers/notification_provider.dart';
+import 'presentation/providers/chat_provider.dart';
 import 'presentation/auth/screens/role_selection_screen.dart';
-import 'presentation/driver/screens/driver_dashboard.dart';
-import 'presentation/passenger/screens/passenger_home.dart';
-// Naya Wrapper import karna mat bhooliyega
 import 'presentation/driver/screens/driver_main_wrapper.dart';
+import 'presentation/passenger/screens/passenger_home.dart';
 
 class EasySafarApp extends StatelessWidget {
   const EasySafarApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Easysafar',
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
-      home: const AuthWrapper(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => NotificationProvider()..init()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()..init()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Easysafar',
+        theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+        home: const AuthWrapper(),
+      ),
     );
   }
 }
@@ -58,7 +65,6 @@ class AuthWrapper extends StatelessWidget {
               final String role = roleSnapshot.data['user_role'] ?? '';
 
               if (role.toLowerCase() == 'driver') {
-                // CHNAGE YAHAN HAI: Ab ye DriverMainWrapper par bhejega
                 return const DriverMainWrapper();
               } else if (role.toLowerCase() == 'passenger') {
                 return const PassengerHome();

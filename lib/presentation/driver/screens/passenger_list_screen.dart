@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:easysafar/data/repositories/notification_repository.dart';
 
 class PassengerListScreen extends StatefulWidget {
   final String tripId;
@@ -20,38 +20,35 @@ class PassengerListScreen extends StatefulWidget {
 
 class _PassengerListScreenState extends State<PassengerListScreen> {
 
-  // --- UPDATED: Behter Error Handling aur Logging ---
+  final NotificationRepository _notificationRepo = NotificationRepository();
+
   Future<void> _updateStatus(String bookingId, String newStatus, String? passengerId) async {
-    // Check karein ke passengerId null to nahi
     if (passengerId == null || passengerId.isEmpty) {
       debugPrint("Error: Passenger ID is missing!");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error: Passenger ID not found. Cannot send notification.")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Error: Passenger ID not found. Cannot send notification.")),
+        );
+      }
       return;
     }
 
     try {
-      // 1. Database mein booking status update karein
       await Supabase.instance.client
           .from('bookings')
           .update({'status': newStatus})
           .eq('id', bookingId);
 
-      // 2. Notification text set karein
-      String title = newStatus == 'confirmed' ? 'Booking Confirmed! ✅' : 'Request Rejected ❌';
+      String title = newStatus == 'confirmed' ? 'Booking Confirmed!' : 'Request Rejected';
       String message = newStatus == 'confirmed'
           ? 'Driver has accepted your request for ${widget.destination}.'
           : 'Sorry, your ride request for ${widget.destination} was rejected.';
 
-      // 3. Notification insert karein (Ensure 'user_id' column name matches your DB)
-      await Supabase.instance.client.from('notifications').insert({
-        'user_id': passengerId,
-        'title': title,
-        'message': message,
-        'is_read': false,
-        'created_at': DateTime.now().toIso8601String(),
-      });
+      await _notificationRepo.sendNotification(
+        userId: passengerId,
+        title: title,
+        message: message,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,7 +59,6 @@ class _PassengerListScreenState extends State<PassengerListScreen> {
         );
       }
     } catch (e) {
-      // Agar error aaye to console mein exact error print hoga
       debugPrint("SYSTEM ERROR: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

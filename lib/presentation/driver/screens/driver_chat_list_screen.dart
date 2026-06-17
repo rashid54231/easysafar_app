@@ -1,6 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../passenger/screens/chat_screen.dart'; // Apne chat screen ka sahi path check kar lein
+import 'package:easysafar/presentation/common_widgets/chat/chat_screen.dart';
 
 class DriverChatListScreen extends StatelessWidget {
   const DriverChatListScreen({super.key});
@@ -10,127 +11,148 @@ class DriverChatListScreen extends StatelessWidget {
     final driverId = Supabase.instance.client.auth.currentUser!.id;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1117),
+      backgroundColor: const Color(0xFF0F1624),
       appBar: AppBar(
-        title: const Text("Passenger Bookings & Chats"),
-        backgroundColor: Colors.blue[900],
+        title: const Text(
+          "Passenger Chats",
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22, color: Color(0xFFE8F0FE)),
+        ),
+        backgroundColor: const Color(0xFF0F1624),
+        foregroundColor: const Color(0xFFE8F0FE),
+        elevation: 0,
       ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        // 🔥 FIX: Direct 'bookings' table se stream le rahe hain jahan passenger ka number save hota hai
-        stream: Supabase.instance.client
-            .from('bookings')
-            .stream(primaryKey: ['id'])
-            .order('created_at', ascending: false),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}"));
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: Supabase.instance.client
+            .from('trips')
+            .select('id')
+            .eq('driver_id', driverId),
+        builder: (context, tripSnapshot) {
+          if (!tripSnapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-          final allBookings = snapshot.data!;
+          final driverTripIds = tripSnapshot.data!.map((t) => t['id'].toString()).toList();
 
-          // Hum sirf un bookings ko filter karenge jo is driver ke trips ki hain
-          return FutureBuilder<List<Map<String, dynamic>>>(
-            future: Supabase.instance.client
-                .from('trips')
-                .select('id')
-                .eq('driver_id', driverId),
-            builder: (context, tripSnapshot) {
-              if (!tripSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (driverTripIds.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 88,
+                    height: 88,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00D4AA).withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: const Color(0xFF00D4AA).withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Icon(Icons.chat_bubble_outline_rounded, size: 44, color: Color(0xFF00D4AA)),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "No Trips Yet",
+                    style: TextStyle(color: Color(0xFFE8F0FE), fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    "Create a trip to start receiving bookings",
+                    style: TextStyle(color: Color(0xFF5A7A9A), fontSize: 13),
+                  ),
+                ],
+              ),
+            );
+          }
 
-              // Driver ke saare active trip IDs nikal lete hain
-              final driverTripIds = tripSnapshot.data!.map((t) => t['id'].toString()).toList();
+          return StreamBuilder<List<Map<String, dynamic>>>(
+            stream: Supabase.instance.client
+                .from('bookings')
+                .stream(primaryKey: ['id'])
+                .order('created_at', ascending: false),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-              // Sirf woh bookings rakhenge jo is driver ke trips ki hain
+              final allBookings = snapshot.data!;
               final myPassengerBookings = allBookings.where((b) {
                 return driverTripIds.contains(b['trip_id'].toString());
               }).toList();
 
               if (myPassengerBookings.isEmpty) {
-                return const Center(child: Text("No bookings or chats yet", style: TextStyle(color: Colors.white60)));
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00D4AA).withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: const Color(0xFF00D4AA).withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Icon(Icons.inbox_outlined, size: 44, color: Color(0xFF00D4AA)),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "No Bookings Yet",
+                        style: TextStyle(color: Color(0xFFE8F0FE), fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        "Passenger bookings will appear here",
+                        style: TextStyle(color: Color(0xFF5A7A9A), fontSize: 13),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              final uniquePassengers = <String, Map<String, dynamic>>{};
+              for (final booking in myPassengerBookings) {
+                final key = '${booking['passenger_id']}_${booking['trip_id']}';
+                if (!uniquePassengers.containsKey(key)) {
+                  uniquePassengers[key] = booking;
+                }
               }
 
               return ListView.builder(
-                itemCount: myPassengerBookings.length,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                itemCount: uniquePassengers.length,
                 itemBuilder: (context, index) {
-                  final booking = myPassengerBookings[index];
+                  final booking = uniquePassengers.values.elementAt(index);
                   final passengerId = booking['passenger_id'];
                   final tripId = booking['trip_id'].toString();
-
-                  // Booking table se direct phone number uthayein
                   String passengerPhone = booking['passenger_phone']?.toString() ?? "No number";
 
-                  // Passenger ka naam profiles table se lane ke liye FutureBuilder
                   return FutureBuilder<Map<String, dynamic>?>(
                     future: Supabase.instance.client
                         .from('profiles')
-                        .select('full_name, phone_number')
+                        .select('full_name, phone_number, avatar_url')
                         .eq('id', passengerId)
                         .maybeSingle(),
                     builder: (context, profileSnapshot) {
-                      String displayName = "Loading...";
+                      String displayName = "Passenger";
+                      String? avatarUrl;
 
                       if (profileSnapshot.hasData && profileSnapshot.data != null) {
                         displayName = profileSnapshot.data!['full_name'] ?? "Passenger";
-                        // Fallback agar booking table mein number kisi wajah se khali ho to profile ka utha le
+                        avatarUrl = profileSnapshot.data!['avatar_url'];
                         if (passengerPhone == "No number" && profileSnapshot.data!['phone_number'] != null) {
                           passengerPhone = profileSnapshot.data!['phone_number'].toString();
                         }
-                      } else if (profileSnapshot.connectionState == ConnectionState.done) {
-                        displayName = "Passenger";
                       }
 
-                      return Card(
-                        color: const Color(0xFF1C2331),
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                        child: ListTile(
-                          leading: const CircleAvatar(
-                            backgroundColor: Colors.blue,
-                            child: Icon(Icons.person, color: Colors.white),
-                          ),
-                          title: Text(
-                            displayName,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 5),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // ✅ PASSENGER NUMBER: Ab yeh har haal mein show hoga kyunki yeh direct booking row se aa raha hai
-                                Row(
-                                  children: [
-                                    const Icon(Icons.phone, size: 14, color: Colors.cyanAccent),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      passengerPhone,
-                                      style: const TextStyle(color: Colors.cyanAccent, fontSize: 13, fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Pickup: ${booking['pickup_location'] ?? 'N/A'}",
-                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
-                          trailing: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.cyanAccent),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChatScreen(
-                                  tripId: tripId,
-                                  receiverId: passengerId,
-                                  receiverName: displayName,
-                                  // Chat screen ke andar direct call option ke liye number bhej rahe hain
-                                  driverPhone: passengerPhone == "No number" ? null : passengerPhone,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                      return _DriverChatListItem(
+                        tripId: tripId,
+                        driverId: driverId,
+                        passengerId: passengerId,
+                        displayName: displayName,
+                        phone: passengerPhone,
+                        avatarUrl: avatarUrl,
+                        pickupLocation: booking['pickup_location'],
                       );
                     },
                   );
@@ -138,6 +160,228 @@ class DriverChatListScreen extends StatelessWidget {
               );
             },
           );
+        },
+      ),
+    );
+  }
+}
+
+class _DriverChatListItem extends StatefulWidget {
+  final String tripId;
+  final String driverId;
+  final String passengerId;
+  final String displayName;
+  final String phone;
+  final String? avatarUrl;
+  final String? pickupLocation;
+
+  const _DriverChatListItem({
+    required this.tripId,
+    required this.driverId,
+    required this.passengerId,
+    required this.displayName,
+    required this.phone,
+    this.avatarUrl,
+    this.pickupLocation,
+  });
+
+  @override
+  State<_DriverChatListItem> createState() => _DriverChatListItemState();
+}
+
+class _DriverChatListItemState extends State<_DriverChatListItem> {
+  String? _lastMessage;
+  String? _lastMessageTime;
+  int _unreadCount = 0;
+  StreamSubscription<List<Map<String, dynamic>>>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLastMessage();
+    _loadUnreadCount();
+    _listenToMessages();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  void _listenToMessages() {
+    _subscription?.cancel();
+    _subscription = Supabase.instance.client
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .eq('receiver_id', widget.driverId)
+        .order('created_at', ascending: false)
+        .listen((_) {
+      _loadUnreadCount();
+      _loadLastMessage();
+    });
+  }
+
+  Future<void> _loadLastMessage() async {
+    try {
+      final data = await Supabase.instance.client
+          .from('messages')
+          .select('content, created_at, sender_id')
+          .eq('trip_id', widget.tripId)
+          .order('created_at', ascending: false)
+          .limit(10);
+
+      final filtered = data.where((m) {
+        return (m['sender_id'] == widget.driverId && m['receiver_id'] == widget.passengerId) ||
+            (m['sender_id'] == widget.passengerId && m['receiver_id'] == widget.driverId);
+      }).toList();
+
+      if (filtered.isNotEmpty && mounted) {
+        final msg = filtered.first;
+        final createdAt = DateTime.tryParse(msg['created_at'] ?? '') ?? DateTime.now();
+        final diff = DateTime.now().difference(createdAt);
+        String timeStr;
+        if (diff.inMinutes < 60) {
+          timeStr = '${diff.inMinutes}m';
+        } else if (diff.inHours < 24) {
+          timeStr = '${diff.inHours}h';
+        } else {
+          timeStr = '${diff.inDays}d';
+        }
+        setState(() {
+          _lastMessage = msg['content'];
+          _lastMessageTime = timeStr;
+        });
+      }
+    } catch (e) {
+      debugPrint("Last message error: $e");
+    }
+  }
+
+  Future<void> _loadUnreadCount() async {
+    try {
+      final data = await Supabase.instance.client
+          .from('messages')
+          .select('id')
+          .eq('trip_id', widget.tripId)
+          .eq('sender_id', widget.passengerId)
+          .eq('receiver_id', widget.driverId)
+          .eq('is_read', false);
+      if (mounted) {
+        setState(() => _unreadCount = data.length);
+      }
+    } catch (e) {
+      debugPrint("Unread count error: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF16213A),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF2C3E52), width: 1),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        leading: CircleAvatar(
+          radius: 24,
+          backgroundColor: const Color(0xFF1E2A3A),
+          backgroundImage: widget.avatarUrl != null ? NetworkImage(widget.avatarUrl!) : null,
+          child: widget.avatarUrl == null
+              ? const Icon(Icons.person, color: Color(0xFF5A7A9A))
+              : null,
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                widget.displayName,
+                style: const TextStyle(
+                  color: Color(0xFFE8F0FE),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (_lastMessageTime != null)
+              Text(
+                _lastMessageTime!,
+                style: TextStyle(
+                  color: _unreadCount > 0 ? const Color(0xFF00D4AA) : const Color(0xFF5A7A9A),
+                  fontSize: 11,
+                  fontWeight: _unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            children: [
+              if (widget.pickupLocation != null) ...[
+                const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF5A7A9A)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    widget.pickupLocation!,
+                    style: const TextStyle(color: Color(0xFF5A7A9A), fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ] else
+                Expanded(
+                  child: Text(
+                    _lastMessage ?? "No messages yet",
+                    style: TextStyle(
+                      color: _unreadCount > 0 ? const Color(0xFFE8F0FE) : const Color(0xFF5A7A9A),
+                      fontSize: 13,
+                      fontWeight: _unreadCount > 0 ? FontWeight.w500 : FontWeight.normal,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              if (_unreadCount > 0)
+                Container(
+                  margin: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF00D4AA),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    _unreadCount > 9 ? '9+' : '$_unreadCount',
+                    style: const TextStyle(
+                      color: Color(0xFF0F1624),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF5A7A9A)),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(
+                tripId: widget.tripId,
+                receiverId: widget.passengerId,
+                receiverName: widget.displayName,
+                driverPhone: widget.phone == "No number" ? null : widget.phone,
+              ),
+            ),
+          ).then((_) {
+            _loadUnreadCount();
+            _loadLastMessage();
+          });
         },
       ),
     );

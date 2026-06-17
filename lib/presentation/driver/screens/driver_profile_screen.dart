@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DriverProfileScreen extends StatefulWidget {
   const DriverProfileScreen({super.key});
@@ -15,8 +16,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
   Map<String, dynamic>? _profileData;
   bool _isLoading = true;
   final ImagePicker _picker = ImagePicker();
+  String? _localImagePath;
 
-  // Controllers to update name and phone
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
 
@@ -55,7 +56,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     }
   }
 
-  // --- EDIT PROFILE BOTTOM SHEET ---
   void _showEditProfileBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -117,7 +117,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     );
   }
 
-  // --- DATABASE MEIN UPDATES SAVE KARNA ---
   Future<void> _updateProfileData() async {
     if (_nameController.text.trim().isEmpty) return;
 
@@ -143,9 +142,45 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     }
   }
 
-  // --- IMAGE PICK + UPLOAD ---
+  Future<void> _deleteOldAvatar() async {
+    try {
+      final oldUrl = _profileData?['avatar_url'];
+      if (oldUrl == null || oldUrl.isEmpty) return;
+
+      final oldFileName = oldUrl.split('avatars/').last;
+      if (oldFileName.isNotEmpty) {
+        await Supabase.instance.client.storage.from('avatars').remove([oldFileName]);
+      }
+    } catch (e) {
+      debugPrint("Delete old avatar error: $e");
+    }
+  }
+
   Future<void> _pickImage() async {
     try {
+      PermissionStatus status = await Permission.photos.status;
+      if (status.isDenied || status.isPermanentlyDenied) {
+        status = await Permission.photos.request();
+      }
+      if (status.isDenied || status.isPermanentlyDenied) {
+        status = await Permission.storage.status;
+        if (status.isDenied || status.isPermanentlyDenied) {
+          status = await Permission.storage.request();
+        }
+      }
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Storage permission is required to pick images"),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          await openAppSettings();
+        }
+        return;
+      }
+
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 512,
@@ -155,10 +190,17 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
 
       if (image == null) return;
 
-      setState(() => _isLoading = true);
+      setState(() {
+        _isLoading = true;
+        _localImagePath = image.path;
+      });
+
+      await _deleteOldAvatar();
 
       final file = File(image.path);
-      final String fileName = '${user!.id}_${DateTime.now().millisecondsSinceEpoch}.png';
+      final String fileName = '${user!.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      debugPrint("Uploading to avatars bucket: $fileName");
 
       await Supabase.instance.client.storage.from('avatars').upload(
         fileName,
@@ -170,10 +212,14 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
           .from('avatars')
           .getPublicUrl(fileName);
 
+      debugPrint("Upload success, URL: $imageUrl");
+
       await Supabase.instance.client
           .from('profiles')
           .update({'avatar_url': imageUrl})
           .eq('id', user!.id);
+
+      debugPrint("Profile updated with avatar_url");
 
       await _fetchProfileDetails();
 
@@ -187,18 +233,31 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
         );
       }
     } catch (e) {
+      debugPrint("Upload error details: $e");
+      String errorMsg = "Upload failed";
+      if (e.toString().contains('Bucket not found')) {
+        errorMsg = "Storage bucket not found. Please create 'avatars' bucket in Supabase Dashboard > Storage.";
+      } else if (e.toString().contains('permission')) {
+        errorMsg = "Permission denied. Check storage bucket policies.";
+      } else {
+        errorMsg = "Upload error: $e";
+      }
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Upload Error: $e"), backgroundColor: Colors.red),
+          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red, duration: const Duration(seconds: 4)),
         );
       }
     }
   }
 
   ImageProvider? _getProfileImage() {
+    if (_localImagePath != null) {
+      return FileImage(File(_localImagePath!));
+    }
     if (_profileData?['avatar_url'] != null) {
-      return NetworkImage(_profileData!['avatar_url']);
+      final cacheBust = DateTime.now().millisecondsSinceEpoch;
+      return NetworkImage('${_profileData!['avatar_url']}?t=$cacheBust');
     }
     return null;
   }
@@ -276,7 +335,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
 
                   const SizedBox(height: 20),
 
-                  // FIXES HERE: Removed 'const' from Container and fixed 'black70' to black.withOpacity(0.7)
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,

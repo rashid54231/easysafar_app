@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:easysafar/presentation/providers/notification_provider.dart';
+import 'package:easysafar/presentation/driver/screens/driver_notifications_screen.dart';
 import 'passenger_list_screen.dart';
 import 'driver_profile_screen.dart';
 
@@ -40,103 +43,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
   void _refresh() {
     _loadProfilePic();
     setState(() {});
-  }
-
-  void _showNotificationPanel(BuildContext context, List<Map<String, dynamic>> pendingBookings) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF16213A),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.all(24),
-          height: 450,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2C3E52),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                "New Seat Requests",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFE8F0FE),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: pendingBookings.length,
-                  itemBuilder: (context, index) {
-                    final booking = pendingBookings[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0F1624),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFF00D4AA).withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFF00D4AA).withOpacity(0.15),
-                          child: const Icon(Icons.person, color: Color(0xFF00D4AA)),
-                        ),
-                        title: Text(
-                          "Booking for ${booking['seats_booked']} Seat(s)",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFE8F0FE),
-                          ),
-                        ),
-                        subtitle: const Text(
-                          "Tap to view details and Accept/Reject",
-                          style: TextStyle(fontSize: 12, color: Color(0xFF5A7A9A)),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 14,
-                          color: Color(0xFF00D4AA),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PassengerListScreen(
-                                tripId: booking['trip_id'],
-                                source: "Notification",
-                                destination: "",
-                              ),
-                            ),
-                          ).then((_) => _refresh());
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -210,7 +116,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
       ),
       body: Column(
         children: [
-          // ── Header band ──
           Container(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
             decoration: const BoxDecoration(
@@ -272,7 +177,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
             ),
           ),
 
-          // ── Trip list ──
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
               stream: Supabase.instance.client
@@ -307,42 +211,31 @@ class _DriverDashboardState extends State<DriverDashboard> {
   }
 
   Widget _buildNotificationBtn() {
-    return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: Supabase.instance.client
-          .from('bookings')
-          .stream(primaryKey: ['id'])
-          .eq('status', 'pending'),
-      builder: (context, snapshot) {
-        final pendingData = snapshot.data ?? [];
+    return Consumer<NotificationProvider>(
+      builder: (context, provider, _) {
+        final unreadCount = provider.unreadCount;
         return Stack(
           alignment: Alignment.center,
           children: [
             IconButton(
               icon: Icon(
-                pendingData.isNotEmpty
+                unreadCount > 0
                     ? Icons.notifications_active_rounded
                     : Icons.notifications_outlined,
-                color: pendingData.isNotEmpty
+                color: unreadCount > 0
                     ? const Color(0xFF00D4AA)
                     : const Color(0xFF5A7A9A),
               ),
               onPressed: () {
-                if (pendingData.isNotEmpty) {
-                  _showNotificationPanel(context, pendingData);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text("No new notifications"),
-                      backgroundColor: const Color(0xFF16213A),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                  );
-                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DriverNotificationsScreen(),
+                  ),
+                );
               },
             ),
-            if (pendingData.isNotEmpty)
+            if (unreadCount > 0)
               Positioned(
                 right: 10,
                 top: 12,
@@ -353,7 +246,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     shape: BoxShape.circle,
                   ),
                   child: Text(
-                    '${pendingData.length}',
+                    '$unreadCount',
                     style: const TextStyle(
                       color: Color(0xFF0F1624),
                       fontSize: 8,
@@ -416,7 +309,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "${trip['source']} ➔ ${trip['destination']}",
+                      "${trip['source']} -> ${trip['destination']}",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,

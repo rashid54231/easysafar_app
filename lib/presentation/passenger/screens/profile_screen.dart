@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../core/constants/app_colors.dart'; // Aapke project ke rangon ke liye
+import 'package:permission_handler/permission_handler.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,9 +14,10 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final supabase = Supabase.instance.client;
   bool _isLoading = false;
-  String? _imageUrl;
-  String? _fullName;
-  final _nameController = TextEditingController(); // Name edit karne ke liye controller
+  Map<String, dynamic>? _profileData;
+  String? _localImagePath;
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -36,14 +38,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (user != null) {
         final data = await supabase
             .from('profiles')
-            .select('avatar_url, full_name')
+            .select()
             .eq('id', user.id)
             .single();
 
         setState(() {
-          _imageUrl = data['avatar_url'];
-          _fullName = data['full_name'];
-          _nameController.text = _fullName ?? ""; // Controller mein purana naam set karna
+          _profileData = data;
+          _nameController.text = data['full_name'] ?? "";
+          _phoneController.text = data['phone_number'] ?? data['phone'] ?? "";
         });
       }
     } catch (e) {
@@ -51,8 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // --- EDIT NAME FUNCTIONALITY (Naya Function) ---
-  void _showEditProfileDialog() {
+  void _showEditProfileBottomSheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -62,8 +63,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom, // Keyboard ke upar dikhane ke liye
-            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 25,
             left: 20,
             right: 20,
           ),
@@ -72,8 +73,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                "Update Full Name",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                "Edit Profile Details",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -85,9 +86,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   prefixIcon: Icon(Icons.person_outline),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
+              TextField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: "Phone Number",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                  prefixIcon: Icon(Icons.phone),
+                ),
+              ),
+              const SizedBox(height: 25),
               ElevatedButton(
-                onPressed: _updateProfileName,
+                onPressed: _updateProfileData,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[900],
                   padding: const EdgeInsets.symmetric(vertical: 15),
@@ -95,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: const Text("Save Changes", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 25),
             ],
           ),
         );
@@ -103,10 +114,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _updateProfileName() async {
+  Future<void> _updateProfileData() async {
     if (_nameController.text.trim().isEmpty) return;
 
-    Navigator.pop(context); // Dialog band karne ke liye
+    Navigator.pop(context);
     setState(() => _isLoading = true);
 
     try {
@@ -115,56 +126,108 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       await supabase.from('profiles').update({
         'full_name': _nameController.text.trim(),
+        'phone_number': _phoneController.text.trim(),
       }).eq('id', user.id);
 
-      setState(() {
-        _fullName = _nameController.text.trim();
-      });
+      await _loadUserProfile();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Name Updated Successfully!"), backgroundColor: Colors.green),
+          const SnackBar(content: Text("Profile Updated Successfully!"), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
-      debugPrint("Update Name Error: $e");
+      debugPrint("Update Profile Error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error updating profile: $e"), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  Future<void> _deleteOldAvatar() async {
+    try {
+      final oldUrl = _profileData?['avatar_url'];
+      if (oldUrl == null || oldUrl.isEmpty) return;
+
+      final oldFileName = oldUrl.split('avatars/').last;
+      if (oldFileName.isNotEmpty) {
+        await supabase.storage.from('avatars').remove([oldFileName]);
+      }
+    } catch (e) {
+      debugPrint("Delete old avatar error: $e");
+    }
+  }
   Future<void> _pickAndUploadImage() async {
     try {
+      PermissionStatus status = await Permission.photos.status;
+      if (status.isDenied || status.isPermanentlyDenied) {
+        status = await Permission.photos.request();
+      }
+      if (status.isDenied || status.isPermanentlyDenied) {
+        status = await Permission.storage.status;
+        if (status.isDenied || status.isPermanentlyDenied) {
+          status = await Permission.storage.request();
+        }
+      }
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Storage permission is required to pick images"),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          await openAppSettings();
+        }
+        return;
+      }
+
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 50,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 70,
       );
 
       if (image == null) return;
 
-      setState(() => _isLoading = true);
+      setState(() {
+        _isLoading = true;
+        _localImagePath = image.path;
+      });
+
       final user = supabase.auth.currentUser;
       if (user == null) return;
 
-      final file = File(image.path);
-      final fileName = '${user.id}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      await _deleteOldAvatar();
 
-      await supabase.storage.from('profiles').upload(
+      final file = File(image.path);
+      final fileName = '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      debugPrint("Uploading to avatars bucket: $fileName");
+
+      await supabase.storage.from('avatars').upload(
         fileName,
         file,
-        fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+        fileOptions: const FileOptions(upsert: true),
       );
 
-      final imageUrl = supabase.storage.from('profiles').getPublicUrl(fileName);
+      final imageUrl = supabase.storage.from('avatars').getPublicUrl(fileName);
+
+      debugPrint("Upload success, URL: $imageUrl");
 
       await supabase.from('profiles').update({
         'avatar_url': imageUrl,
       }).eq('id', user.id);
 
-      setState(() {
-        _imageUrl = imageUrl;
-      });
+      debugPrint("Profile updated with avatar_url");
+
+      await _loadUserProfile();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -172,20 +235,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     } catch (e) {
-      debugPrint("Upload Error: $e");
+      debugPrint("Upload error details: $e");
+      String errorMsg = "Upload failed";
+      if (e.toString().contains('Bucket not found')) {
+        errorMsg = "Storage bucket not found. Please create 'avatars' bucket in Supabase Dashboard > Storage.";
+      } else if (e.toString().contains('permission')) {
+        errorMsg = "Permission denied. Check storage bucket policies.";
+      } else {
+        errorMsg = "Upload error: $e";
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red, duration: const Duration(seconds: 4)),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  ImageProvider? _getProfileImage() {
+    if (_localImagePath != null) {
+      return FileImage(File(_localImagePath!));
+    }
+    if (_profileData?['avatar_url'] != null) {
+      final cacheBust = DateTime.now().millisecondsSinceEpoch;
+      return NetworkImage('${_profileData!['avatar_url']}?t=$cacheBust');
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final userEmail = supabase.auth.currentUser?.email ?? "User Email";
+    final displayPhone = _profileData?['phone_number'] ?? _profileData?['phone'] ?? "Not added";
 
     return SingleChildScrollView(
       child: Column(
         children: [
-          // --- TOP PROFILE HEADER ---
           Stack(
             clipBehavior: Clip.none,
             alignment: Alignment.center,
@@ -216,10 +303,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: CircleAvatar(
                           radius: 55,
                           backgroundColor: Colors.grey[200],
-                          backgroundImage: _imageUrl != null ? NetworkImage(_imageUrl!) : null,
-                          child: _imageUrl == null && !_isLoading
+                          backgroundImage: _getProfileImage(),
+                          child: _getProfileImage() == null && !_isLoading
                               ? Icon(Icons.person, size: 60, color: Colors.blue[900])
-                              : (_isLoading ? const CircularProgressIndicator() : null),
+                              : (_isLoading && _localImagePath == null ? const CircularProgressIndicator() : null),
                         ),
                       ),
                       Positioned(
@@ -247,9 +334,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: 60),
 
-          // --- USER INFO ---
           Text(
-            _fullName ?? "Passenger",
+            _profileData?['full_name'] ?? "Passenger",
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: 0.5),
           ),
           Text(
@@ -259,7 +345,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: 25),
 
-          // --- OPTIONS ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -276,22 +361,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
                   ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.person_outline, color: Colors.blue, size: 22),
-                    ),
-                    title: const Text("Edit Profile Name", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-                    onTap: _showEditProfileDialog, // 👈 Ab ye function call hoga click karne par
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                          child: const Icon(Icons.phone, color: Colors.blue, size: 22),
+                        ),
+                        title: const Text("Phone Number", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                        subtitle: Text(displayPhone, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                          child: const Icon(Icons.person_outline, color: Colors.blue, size: 22),
+                        ),
+                        title: const Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                        trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                        onTap: _showEditProfileBottomSheet,
+                      ),
+                    ],
                   ),
                 ),
 
                 const SizedBox(height: 40),
 
-                // --- LOGOUT ---
                 SizedBox(
                   width: double.infinity,
                   height: 55,

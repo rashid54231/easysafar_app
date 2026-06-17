@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:easysafar/presentation/providers/notification_provider.dart';
+import 'package:easysafar/presentation/providers/chat_provider.dart';
+import 'package:easysafar/presentation/driver/screens/driver_notifications_screen.dart';
 import 'driver_dashboard.dart';
 import 'create_trip_screen.dart';
 import 'earnings_screen.dart';
@@ -17,13 +21,12 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
   int _selectedIndex = 0;
   final _supabase = Supabase.instance.client;
 
-  // ✅ VEHICLE REG SCREEN KO DELETED/REMOVED
   final List<Widget> _screens = [
-    const DriverDashboard(),      // Index 0
-    const CreateTripScreen(),     // Index 1
-    const DriverChatListScreen(), // Index 2
-    const EarningsScreen(),       // Index 3
-    const DriverProfileScreen(),  // Index 4 (Pehle yeh 5 par thi)
+    const DriverDashboard(),
+    const CreateTripScreen(),
+    const DriverChatListScreen(),
+    const EarningsScreen(),
+    const DriverProfileScreen(),
   ];
 
   @override
@@ -59,16 +62,16 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
                   activeIcon: Icons.add_circle,
                   label: "Post Trip",
                 ),
-                _buildChatNavItem(driverId), // Index 2 automatically handled inside
+                _buildChatNavItem(driverId),
+                _buildNotificationNavItem(),
                 _buildNavItem(
                   index: 3,
                   icon: Icons.account_balance_wallet_outlined,
                   activeIcon: Icons.account_balance_wallet,
                   label: "Wallet",
                 ),
-                // ✅ VEHICLE NAV ITEM POLISHED AND REMOVED FROM HERE
                 _buildNavItem(
-                  index: 4, // Index changed from 5 to 4
+                  index: 4,
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
                   label: "Profile",
@@ -133,18 +136,9 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
       child: GestureDetector(
         onTap: () => setState(() => _selectedIndex = 2),
         behavior: HitTestBehavior.opaque,
-        child: StreamBuilder<List<Map<String, dynamic>>>(
-          stream: _supabase
-              .from('messages')
-              .stream(primaryKey: ['id'])
-              .order('created_at', ascending: false),
-          builder: (context, snapshot) {
-            final allMessages = snapshot.data ?? [];
-            int unreadCount = allMessages
-                .where((m) =>
-            m['receiver_id'] == driverId && m['is_read'] == false)
-                .length;
-
+        child: Consumer<ChatProvider>(
+          builder: (context, provider, _) {
+            final unreadCount = provider.globalUnreadCount;
             return AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
@@ -212,6 +206,90 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationNavItem() {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DriverNotificationsScreen(),
+            ),
+          );
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Consumer<NotificationProvider>(
+            builder: (context, provider, _) {
+              final unreadCount = provider.unreadCount;
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 28,
+                    height: 22,
+                    child: Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Icon(
+                            Icons.notifications_outlined,
+                            size: 20,
+                            color: Colors.white60,
+                          ),
+                        ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFF5252),
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 13,
+                                minHeight: 13,
+                              ),
+                              child: Text(
+                                unreadCount > 9 ? '9+' : '$unreadCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 7,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  const Text(
+                    "Alerts",
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white60,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

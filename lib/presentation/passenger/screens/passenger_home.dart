@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:easysafar/presentation/providers/notification_provider.dart';
+import 'package:easysafar/presentation/providers/chat_provider.dart';
+import 'package:easysafar/presentation/passenger/screens/passenger_notifications_screen.dart';
+import 'package:easysafar/presentation/passenger/screens/passenger_chat_list_screen.dart';
 import 'my_bookings_screen.dart';
 import 'profile_screen.dart';
-import 'chat_screen.dart';
 
 class PassengerHome extends StatefulWidget {
   const PassengerHome({super.key});
@@ -13,9 +17,6 @@ class PassengerHome extends StatefulWidget {
 
 class _PassengerHomeState extends State<PassengerHome> {
   int _currentIndex = 0;
-  int _unreadNotifications = 0;
-  int _unreadMessages = 0;
-  final _supabase = Supabase.instance.client;
 
   final List<Widget> _screens = [
     const TripsListBody(),
@@ -23,66 +24,6 @@ class _PassengerHomeState extends State<PassengerHome> {
     const MyBookingsScreen(),
     const ProfileScreen(),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _listenToNotifications();
-    _listenToUnreadMessages();
-  }
-
-  void _listenToNotifications() {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return;
-
-    _supabase
-        .from('notifications')
-        .stream(primaryKey: ['id'])
-        .eq('user_id', user.id)
-        .listen((data) {
-      final unread = data.where((n) => n['is_read'] == false).toList();
-      if (mounted) {
-        setState(() {
-          _unreadNotifications = unread.length;
-        });
-      }
-    });
-  }
-
-  void _listenToUnreadMessages() {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return;
-
-    _supabase
-        .from('messages')
-        .stream(primaryKey: ['id'])
-        .eq('receiver_id', user.id)
-        .listen((data) {
-      final unread = data.where((m) => m['is_read'] == false).toList();
-      if (mounted) {
-        setState(() {
-          _unreadMessages = unread.length;
-        });
-      }
-    });
-  }
-
-  Future<void> _refreshBadgeCount() async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return;
-
-    final response = await _supabase
-        .from('notifications')
-        .select()
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-    if (mounted) {
-      setState(() {
-        _unreadNotifications = response.length;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,19 +44,23 @@ class _PassengerHomeState extends State<PassengerHome> {
           if (_currentIndex == 0)
             Padding(
               padding: const EdgeInsets.only(right: 10),
-              child: IconButton(
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+              child: Consumer<NotificationProvider>(
+                builder: (context, provider, _) {
+                  return IconButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PassengerNotificationsScreen()),
+                      );
+                      provider.refreshUnreadCount();
+                    },
+                    icon: Badge(
+                      label: provider.unreadCount > 0 ? Text('${provider.unreadCount}') : null,
+                      isLabelVisible: provider.unreadCount > 0,
+                      child: const Icon(Icons.notifications_none_rounded, size: 28),
+                    ),
                   );
-                  _refreshBadgeCount();
                 },
-                icon: Badge(
-                  label: _unreadNotifications > 0 ? Text('$_unreadNotifications') : null,
-                  isLabelVisible: _unreadNotifications > 0,
-                  child: const Icon(Icons.notifications_none_rounded, size: 28),
-                ),
               ),
             ),
         ],
@@ -131,10 +76,14 @@ class _PassengerHomeState extends State<PassengerHome> {
         items: [
           const BottomNavigationBarItem(icon: Icon(Icons.explore_rounded), label: "Explore"),
           BottomNavigationBarItem(
-            icon: Badge(
-              label: _unreadMessages > 0 ? Text('$_unreadMessages') : null,
-              isLabelVisible: _unreadMessages > 0,
-              child: const Icon(Icons.chat_bubble_rounded),
+            icon: Consumer<ChatProvider>(
+              builder: (context, provider, _) {
+                return Badge(
+                  label: provider.globalUnreadCount > 0 ? Text('${provider.globalUnreadCount}') : null,
+                  isLabelVisible: provider.globalUnreadCount > 0,
+                  child: const Icon(Icons.chat_bubble_rounded),
+                );
+              },
             ),
             label: "Chats",
           ),
@@ -169,11 +118,10 @@ class _TripsListBodyState extends State<TripsListBody> {
     }
   }
 
-  // --- UPDATED BOOKING SHEET: Phone Number Input Add Kiya Hai ---
   void _showBookingSheet(Map<String, dynamic> trip) {
     int selectedSeats = 1;
     final TextEditingController pickupController = TextEditingController();
-    final TextEditingController phoneController = TextEditingController(); // ✅ Passenger phone controller
+    final TextEditingController phoneController = TextEditingController();
     final int maxSeats = trip['available_seats'];
     final int pricePerSeat = trip['price_per_seat'] ?? 0;
 
@@ -203,7 +151,6 @@ class _TripsListBodyState extends State<TripsListBody> {
                 ),
               ),
               const SizedBox(height: 15),
-              // ✅ CONTACT NUMBER FIELD: Passenger yahan apna number likhega
               TextField(
                 controller: phoneController,
                 keyboardType: TextInputType.phone,
@@ -255,7 +202,6 @@ class _TripsListBodyState extends State<TripsListBody> {
                     if (pickupController.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please enter pickup location")));
                     } else if (phoneController.text.trim().isEmpty) {
-                      // Number mandatory kar diya hai check lagakar
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please enter your contact number")));
                     } else {
                       _confirmBooking(trip, selectedSeats, pickupController.text.trim(), phoneController.text.trim());
@@ -272,7 +218,6 @@ class _TripsListBodyState extends State<TripsListBody> {
     );
   }
 
-  // --- UPDATED INSERT: passenger_phone ko query me pass kar dia hai ---
   Future<void> _confirmBooking(Map<String, dynamic> trip, int seats, String pickup, String phone) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
@@ -283,7 +228,7 @@ class _TripsListBodyState extends State<TripsListBody> {
         'passenger_id': userId,
         'seats_booked': seats,
         'pickup_location': pickup,
-        'passenger_phone': phone, // ✅ Naya column data pass ho raha hai SQL k mutabiq
+        'passenger_phone': phone,
         'total_price': seats * (trip['price_per_seat'] ?? 0),
         'status': 'pending',
       });
@@ -429,7 +374,7 @@ class _TripsListBodyState extends State<TripsListBody> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("💺 ${trip['available_seats']} left", style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                              Text("Seats ${trip['available_seats']} left", style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
                               ElevatedButton(
                                 onPressed: () => _showBookingSheet(trip),
                                 style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent),
@@ -447,146 +392,6 @@ class _TripsListBodyState extends State<TripsListBody> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class PassengerChatListScreen extends StatelessWidget {
-  const PassengerChatListScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final myId = Supabase.instance.client.auth.currentUser!.id;
-
-    return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: Supabase.instance.client
-          .from('bookings')
-          .stream(primaryKey: ['id'])
-          .eq('passenger_id', myId),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-        final myBookings = snapshot.data!;
-        if (myBookings.isEmpty) {
-          return const Center(child: Text("No bookings yet. Book a ride to chat!", style: TextStyle(color: Colors.white60, fontSize: 15)));
-        }
-
-        final uniqueTripIds = myBookings.map((b) => b['trip_id'].toString()).toSet().toList();
-
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          itemCount: uniqueTripIds.length,
-          itemBuilder: (context, index) {
-            final currentTripId = uniqueTripIds[index];
-
-            return FutureBuilder<Map<String, dynamic>?>(
-              future: Supabase.instance.client
-                  .from('trips')
-                  .select('id, driver_id, driver_name, driver_phone, profiles:driver_id(full_name, phone_number, avatar_url)')
-                  .eq('id', currentTripId)
-                  .maybeSingle(),
-              builder: (context, tripSnapshot) {
-                if (!tripSnapshot.hasData || tripSnapshot.data == null) {
-                  return const SizedBox.shrink();
-                }
-
-                final tripData = tripSnapshot.data!;
-                final driverProfile = tripData['profiles'] as Map<String, dynamic>?;
-
-                String driverName = tripData['driver_name'] ?? driverProfile?['full_name'] ?? "Driver";
-
-                String driverPhone = "No number";
-                if (tripData['driver_phone'] != null && tripData['driver_phone'].toString().trim().isNotEmpty) {
-                  driverPhone = tripData['driver_phone'].toString();
-                } else if (driverProfile != null && driverProfile['phone_number'] != null) {
-                  driverPhone = driverProfile['phone_number'].toString();
-                }
-
-                String? avatarUrl = driverProfile?['avatar_url'];
-                String driverUid = tripData['driver_id'].toString();
-
-                return Card(
-                  color: const Color(0xFF1C2331),
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue[900],
-                      backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                      child: avatarUrl == null ? const Icon(Icons.person, color: Colors.white) : null,
-                    ),
-                    title: Text(driverName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    subtitle: Text("Phone: $driverPhone", style: const TextStyle(color: Colors.cyanAccent, fontSize: 13)),
-                    trailing: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.cyanAccent),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChatScreen(
-                            tripId: currentTripId,
-                            receiverId: driverUid,
-                            receiverName: driverName,
-                            driverPhone: driverPhone == "No number" ? null : driverPhone,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
-  @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
-}
-
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _markAllAsRead();
-  }
-
-  Future<void> _markAllAsRead() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
-    await Supabase.instance.client.from('notifications').update({'is_read': true}).eq('user_id', user.id).eq('is_read', false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final userId = Supabase.instance.client.auth.currentUser!.id;
-    return Scaffold(
-      backgroundColor: const Color(0xFF0D1117),
-      appBar: AppBar(title: const Text("Notifications"), backgroundColor: Colors.blue[900]),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: Supabase.instance.client.from('notifications').stream(primaryKey: ['id']).order('created_at', ascending: false),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          final myNotes = snapshot.data!.where((n) => n['user_id'] == userId).toList();
-          if (myNotes.isEmpty) {
-            return const Center(child: Text("No notifications yet", style: TextStyle(color: Colors.white60)));
-          }
-          return ListView.builder(
-            itemCount: myNotes.length,
-            itemBuilder: (context, index) {
-              final note = myNotes[index];
-              return ListTile(
-                title: Text(note['title'] ?? "", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                subtitle: Text(note['message'] ?? "", style: const TextStyle(color: Colors.white70)),
-              );
-            },
-          );
-        },
-      ),
     );
   }
 }
