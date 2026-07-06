@@ -3,12 +3,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthRepository {
   final _supabase = Supabase.instance.client;
 
-  // Professional Signup with Metadata (Trigger friendly)
   Future<void> signUp({
     required String email,
     required String password,
     required String fullName,
-    required String role, // 'driver' or 'passenger'
+    required String role,
   }) async {
     await _supabase.auth.signUp(
       email: email,
@@ -20,8 +19,11 @@ class AuthRepository {
     );
   }
 
-  // Login
   Future<void> signIn(String email, String password) async {
     await _supabase.auth.signInWithPassword(email: email, password: password);
+  }
+
+  Future<void> resetPassword(String email) async {
+    await _supabase.auth.resetPasswordForEmail(email);
   }
 }
