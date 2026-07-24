@@ -153,10 +153,10 @@ class _RoleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color borderColor = isPrimary
-        ? const Color(0xFF00D4AA).withOpacity(0.6)
+        ? const Color(0xFF00D4AA).withValues(alpha: 0.6)
         : const Color(0xFF2C3E52);
     final Color iconBg = isPrimary
-        ? const Color(0xFF00D4AA).withOpacity(0.1)
+        ? const Color(0xFF00D4AA).withValues(alpha: 0.1)
         : const Color(0xFF1E2A3A);
     final Color iconColor = isPrimary
         ? const Color(0xFF00D4AA)
@@ -168,8 +168,8 @@ class _RoleButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        splashColor: const Color(0xFF00D4AA).withOpacity(0.05),
-        highlightColor: const Color(0xFF00D4AA).withOpacity(0.03),
+        splashColor: const Color(0xFF00D4AA).withValues(alpha: 0.05),
+        highlightColor: const Color(0xFF00D4AA).withValues(alpha: 0.03),
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
@@ -189,7 +189,7 @@ class _RoleButton extends StatelessWidget {
                   color: iconBg,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: iconColor.withOpacity(0.3),
+                    color: iconColor.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),

@@ -40,10 +40,10 @@ class DriverChatListScreen extends StatelessWidget {
                     width: 88,
                     height: 88,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00D4AA).withOpacity(0.08),
+                      color: const Color(0xFF00D4AA).withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: const Color(0xFF00D4AA).withOpacity(0.2),
+                        color: const Color(0xFF00D4AA).withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
@@ -86,10 +86,10 @@ class DriverChatListScreen extends StatelessWidget {
                         width: 88,
                         height: 88,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF00D4AA).withOpacity(0.08),
+                          color: const Color(0xFF00D4AA).withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: const Color(0xFF00D4AA).withOpacity(0.2),
+                            color: const Color(0xFF00D4AA).withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -387,3 +387,4 @@ class _DriverChatListItemState extends State<_DriverChatListItem> {
     );
   }
 }
+

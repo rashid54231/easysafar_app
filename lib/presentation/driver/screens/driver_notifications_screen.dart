@@ -68,10 +68,10 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
                     width: 88,
                     height: 88,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00D4AA).withOpacity(0.08),
+                      color: const Color(0xFF00D4AA).withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: const Color(0xFF00D4AA).withOpacity(0.2),
+                        color: const Color(0xFF00D4AA).withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
@@ -121,7 +121,7 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
                   border: Border.all(
                     color: notification.isRead
                         ? const Color(0xFF2C3E52)
-                        : iconColor.withOpacity(0.3),
+                        : iconColor.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -131,7 +131,7 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: iconColor.withOpacity(0.15),
+                      color: iconColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(icon, color: iconColor, size: 22),
@@ -178,3 +178,4 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
     );
   }
 }
+

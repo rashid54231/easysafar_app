@@ -90,7 +90,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFF00D4AA).withOpacity(0.5),
+                        color: const Color(0xFF00D4AA).withValues(alpha: 0.5),
                         width: 2,
                       ),
                     ),
@@ -141,8 +141,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                           colors: [
-                            const Color(0xFF0F1624).withOpacity(0.9),
-                            const Color(0xFF0F1624).withOpacity(0.4),
+                            const Color(0xFF0F1624).withValues(alpha: 0.9),
+                            const Color(0xFF0F1624).withValues(alpha: 0.4),
                           ],
                         ),
                       ),
@@ -152,7 +152,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                     decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF2C3E52).withOpacity(0.5), width: 1),
+                      border: Border.all(color: const Color(0xFF2C3E52).withValues(alpha: 0.5), width: 1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -190,7 +190,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF00D4AA).withOpacity(0.3),
+                                  color: const Color(0xFF00D4AA).withValues(alpha: 0.3),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -302,10 +302,13 @@ class _DriverDashboardState extends State<DriverDashboard> {
         color: const Color(0xFF16213A),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF2C3E52), width: 1),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4)),
+        ],
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        splashColor: const Color(0xFF00D4AA).withOpacity(0.05),
+        splashColor: const Color(0xFF00D4AA).withValues(alpha: 0.05),
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -317,65 +320,72 @@ class _DriverDashboardState extends State<DriverDashboard> {
           ),
         ).then((_) => _refresh()),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+          padding: const EdgeInsets.all(14),
+          child: Column(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Image.asset(
-                  'assets/images/trip_cover.png',
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00D4AA).withOpacity(0.1),
-                      border: Border.all(color: const Color(0xFF00D4AA).withOpacity(0.3), width: 1),
-                    ),
-                    child: const Icon(Icons.directions_car_filled_rounded, color: Color(0xFF00D4AA)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${trip['source']} -> ${trip['destination']}",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Color(0xFFE8F0FE),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.asset(
+                      'assets/images/trip_cover.png',
+                      width: 110,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 110,
+                        height: 80,
+                        color: const Color(0xFF2C3E52),
+                        child: const Icon(Icons.directions_car_filled_rounded, color: Colors.white54),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          Icons.event_seat_rounded,
-                          size: 13,
-                          color: Color(0xFF5A7A9A),
-                        ),
-                        const SizedBox(width: 4),
                         Text(
-                          "Available Seats: ${trip['available_seats']}",
-                          style: const TextStyle(
-                            color: Color(0xFF5A7A9A),
-                            fontSize: 13,
-                          ),
+                          "${trip['source']} → ${trip['destination']}",
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today, size: 13, color: Color(0xFF00D4AA)),
+                            const SizedBox(width: 4),
+                            Text(trip['departure_date'] ?? "Not set", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.access_time, size: 13, color: Color(0xFF00D4AA)),
+                            const SizedBox(width: 4),
+                            Text(trip['departure_time'] ?? "Not set", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.event_seat_rounded, size: 13, color: Colors.orangeAccent),
+                                const SizedBox(width: 4),
+                                Text("${trip['available_seats']} Seats", style: const TextStyle(color: Colors.orangeAccent, fontSize: 13, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                            Text("Rs. ${trip['price_per_seat'] ?? '0'}", style: const TextStyle(color: Color(0xFF00D4AA), fontSize: 15, fontWeight: FontWeight.bold)),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: Color(0xFF5A7A9A),
+                  ),
+                ],
               ),
             ],
           ),
@@ -398,9 +408,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: const Color(0xFF00D4AA).withOpacity(0.08),
+                color: const Color(0xFF00D4AA).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF00D4AA).withOpacity(0.2), width: 1),
+                border: Border.all(color: const Color(0xFF00D4AA).withValues(alpha: 0.2), width: 1),
               ),
               child: const Icon(Icons.directions_bus_outlined, size: 44, color: Color(0xFF00D4AA)),
             ),
@@ -427,3 +437,4 @@ class _DriverDashboardState extends State<DriverDashboard> {
     );
   }
 }
+

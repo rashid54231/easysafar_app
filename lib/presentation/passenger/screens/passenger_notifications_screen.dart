@@ -96,8 +96,8 @@ class _PassengerNotificationsScreenState extends State<PassengerNotificationsScr
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: notification.isRead
-                        ? Colors.white.withOpacity(0.05)
-                        : iconColor.withOpacity(0.3),
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : iconColor.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -107,7 +107,7 @@ class _PassengerNotificationsScreenState extends State<PassengerNotificationsScr
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: iconColor.withOpacity(0.15),
+                      color: iconColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Icon(icon, color: iconColor, size: 24),
@@ -150,3 +150,4 @@ class _PassengerNotificationsScreenState extends State<PassengerNotificationsScr
     );
   }
 }
+

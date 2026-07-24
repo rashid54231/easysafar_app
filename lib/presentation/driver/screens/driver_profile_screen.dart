@@ -279,14 +279,32 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
           : SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.blue[900],
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
-              ),
-              padding: const EdgeInsets.only(bottom: 30),
-              child: Column(
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Image.asset(
+                      'assets/images/profile_cover.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(color: Colors.blue[900]),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.black54, Colors.blue[900]!.withValues(alpha: 0.7)],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(bottom: 30, top: 20),
+                    child: Column(
                 children: [
                   GestureDetector(
                     onTap: _pickImage,
@@ -324,6 +342,9 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
 
             const SizedBox(height: 25),
 
@@ -342,7 +363,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                     ),
                     child: ListTile(
                       onTap: _showEditProfileBottomSheet,
-                      leading: Icon(Icons.edit_note_rounded, color: Colors.black.withOpacity(0.7), size: 26),
+                      leading: Icon(Icons.edit_note_rounded, color: Colors.black.withValues(alpha: 0.7), size: 26),
                       title: const Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
                       trailing: const Icon(Icons.chevron_right),
                     ),
@@ -390,3 +411,4 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     );
   }
 }
+

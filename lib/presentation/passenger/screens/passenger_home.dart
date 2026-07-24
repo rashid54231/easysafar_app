@@ -269,7 +269,7 @@ class _TripsListBodyState extends State<TripsListBody> {
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
                   gradient: LinearGradient(
-                    colors: [Colors.blue[900]!.withOpacity(0.9), Colors.blue[900]!.withOpacity(0.5)],
+                    colors: [Colors.blue[900]!.withValues(alpha: 0.9), Colors.blue[900]!.withValues(alpha: 0.5)],
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                   ),
@@ -292,16 +292,16 @@ class _TripsListBodyState extends State<TripsListBody> {
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: TextField(
                       onChanged: (val) => setState(() => searchQuery = val),
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         hintText: "Search destination...",
-                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+                        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
                         prefixIcon: const Icon(Icons.search_rounded, color: Colors.cyanAccent),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(vertical: 15),
@@ -329,130 +329,113 @@ class _TripsListBodyState extends State<TripsListBody> {
                 itemBuilder: (context, index) {
                   final trip = trips[index];
                   return Container(
-                    margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
+                    margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFF1C2331), Color(0xFF0D1117)]),
-                      borderRadius: BorderRadius.circular(25),
-                      border: Border.all(color: Colors.white.withOpacity(0.05)),
+                      color: const Color(0xFF16213A),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF2C3E52), width: 1),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4)),
+                      ],
                     ),
                     child: Column(
                       children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
-                          child: Stack(
-                            children: [
-                              Image.asset(
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Small Thumbnail Image
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: Image.asset(
                                 'assets/images/trip_cover.png',
-                                height: 100,
-                                width: double.infinity,
+                                width: 110,
+                                height: 80,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) => Container(
-                                  height: 100,
-                                  color: Colors.black26,
+                                  width: 110,
+                                  height: 80,
+                                  color: const Color(0xFF2C3E52),
+                                  child: const Icon(Icons.image_not_supported, color: Colors.white54),
                                 ),
                               ),
-                              Container(
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [Colors.transparent, Color(0xFF1C2331)],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
+                            ),
+                            const SizedBox(width: 14),
+                            // Details
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          "${trip['source'] ?? 'N/A'} → ${trip['destination'] ?? 'N/A'}",
+                                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.calendar_today, size: 13, color: Color(0xFF00D4AA)),
+                                      const SizedBox(width: 5),
+                                      Text(trip['departure_date'] ?? "Today", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.access_time, size: 13, color: Color(0xFF00D4AA)),
+                                      const SizedBox(width: 5),
+                                      Text(_formatTime(trip['departure_time']), style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text("Rs. ${trip['price_per_seat']}", style: const TextStyle(color: Color(0xFF00D4AA), fontSize: 15, fontWeight: FontWeight.w900)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Driver info
+                            Row(
+                              children: [
+                                const CircleAvatar(radius: 12, backgroundColor: Colors.white24, child: Icon(Icons.person, size: 16, color: Colors.white)),
+                                const SizedBox(width: 8),
+                                Text(trip['driver_name'] ?? "Driver", style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                              ],
+                            ),
+                            // Action
+                            Row(
+                              children: [
+                                Text("${trip['available_seats']} Seats", style: const TextStyle(color: Colors.orangeAccent, fontSize: 13, fontWeight: FontWeight.w600)),
+                                const SizedBox(width: 12),
+                                SizedBox(
+                                  height: 32,
+                                  child: ElevatedButton(
+                                    onPressed: () => _showBookingSheet(trip),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF00D4AA),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    child: const Text("Book", style: TextStyle(color: Color(0xFF0F1624), fontSize: 13, fontWeight: FontWeight.bold)),
                                   ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 15, left: 20, right: 20),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.calendar_month, size: 14, color: Colors.cyanAccent),
-                                          const SizedBox(width: 5),
-                                          Text(trip['departure_date'] ?? "Today", style: const TextStyle(color: Colors.white)),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue[900]!.withOpacity(0.8),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: Colors.cyanAccent.withOpacity(0.5)),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.access_time_rounded, size: 14, color: Colors.cyanAccent),
-                                          const SizedBox(width: 5),
-                                          Text(
-                                            _formatTime(trip['departure_time']),
-                                            style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 12),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.location_on, color: Colors.orangeAccent),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("From: ${trip['source'] ?? 'N/A'}", style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                                    const SizedBox(height: 4),
-                                    Text(trip['destination'] ?? "Dest", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                                  ],
-                                ),
-                              ),
-                              Text("Rs. ${trip['price_per_seat']}", style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          color: Colors.black12,
-                          child: Row(
-                            children: [
-                              const CircleAvatar(radius: 18, child: Icon(Icons.person)),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(trip['driver_name'] ?? "Driver", style: const TextStyle(color: Colors.white)),
-                                    Text("${trip['vehicle_name'] ?? 'Car'}", style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(15),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text("Seats ${trip['available_seats']} left", style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
-                              ElevatedButton(
-                                onPressed: () => _showBookingSheet(trip),
-                                style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent),
-                                child: const Text("Book Now", style: TextStyle(color: Color(0xFF0D1117), fontWeight: FontWeight.bold)),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -466,3 +449,4 @@ class _TripsListBodyState extends State<TripsListBody> {
     );
   }
 }
+

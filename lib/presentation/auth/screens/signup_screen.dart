@@ -116,7 +116,23 @@ class _SignupScreenState extends State<SignupScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F1624),
-      body: SafeArea(
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/signup_bg.png',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF0F1624)),
+            ),
+          ),
+          // Dark Overlay for readability
+          Positioned.fill(
+            child: Container(
+              color: const Color(0xFF0F1624).withValues(alpha: 0.7),
+            ),
+          ),
+          SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -151,7 +167,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         color: const Color(0xFF1E2A3A),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: const Color(0xFF00D4AA).withOpacity(0.4),
+                          color: const Color(0xFF00D4AA).withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
@@ -189,10 +205,10 @@ class _SignupScreenState extends State<SignupScreen> {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00D4AA).withOpacity(0.1),
+                        color: const Color(0xFF00D4AA).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: const Color(0xFF00D4AA).withOpacity(0.3),
+                          color: const Color(0xFF00D4AA).withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -337,7 +353,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF00D4AA).withOpacity(0.3),
+                                color: const Color(0xFF00D4AA).withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 6),
                               ),
@@ -425,7 +441,9 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ),
       ),
-    );
+    ],
+  ),
+);
   }
 }
 //hello

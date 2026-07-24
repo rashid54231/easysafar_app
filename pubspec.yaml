@@ -50,3 +50,6 @@ flutter:
     - assets/images/passenger_hero.png
     - assets/images/trip_cover.png
     - assets/images/empty_trips.png
+    - assets/images/signup_bg.png
+    - assets/images/wallet_bg.png
+    - assets/images/profile_cover.png

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/constants/app_colors.dart';
-
 class SeatSelectionScreen extends StatefulWidget {
   final Map<String, dynamic> trip;
   const SeatSelectionScreen({super.key, required this.trip});
@@ -113,7 +111,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               children: [
                 Column(
                   children: [
-                    Icon(Icons.directions_car_filled, color: Colors.white.withOpacity(0.5), size: 30),
+                    Icon(Icons.directions_car_filled, color: Colors.white.withValues(alpha: 0.5), size: 30),
                     const Text("DRIVER", style: TextStyle(color: Colors.white, fontSize: 10)),
                   ],
                 ),
@@ -164,7 +162,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       color: isBooked ? Colors.red[100] : isSelected ? Colors.blue[900] : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: const Offset(0, 2))
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2))
                       ],
                       border: Border.all(
                         color: isBooked ? Colors.red[200]! : isSelected ? Colors.blue[900]! : Colors.grey[300]!,
@@ -188,7 +186,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
             ),
             child: Row(
               children: [

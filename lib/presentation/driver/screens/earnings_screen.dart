@@ -41,26 +41,45 @@ class EarningsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               children: [
                 // Wallet Display
-                Container(
-                  padding: const EdgeInsets.all(30),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [Colors.blue[900]!, Colors.blue[700]!]),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blue.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Stack(
                     children: [
-                      const Text("Available Balance", style: TextStyle(color: Colors.white70)),
-                      const SizedBox(height: 10),
-                      Text(
-                          "Rs. ${totalEarned.toString()}",
-                          style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)
+                      Positioned.fill(
+                        child: Image.asset(
+                          'assets/images/wallet_bg.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(colors: [Colors.blue[900]!, Colors.blue[700]!]),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.black54, Colors.blue[900]!.withValues(alpha: 0.6)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(30),
+                        width: double.infinity,
+                        child: Column(
+                          children: [
+                            const Text("Available Balance", style: TextStyle(color: Colors.white70)),
+                            const SizedBox(height: 10),
+                            Text(
+                                "Rs. ${totalEarned.toString()}",
+                                style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

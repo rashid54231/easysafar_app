@@ -219,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
           // Dark Overlay
           Positioned.fill(
             child: Container(
-              color: const Color(0xFF0F1624).withOpacity(0.5),
+              color: const Color(0xFF0F1624).withValues(alpha: 0.5),
             ),
           ),
           SafeArea(
@@ -257,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E2A3A),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF00D4AA).withOpacity(0.4), width: 1),
+                        border: Border.all(color: const Color(0xFF00D4AA).withValues(alpha: 0.4), width: 1),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -294,10 +294,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00D4AA).withOpacity(0.1),
+                        color: const Color(0xFF00D4AA).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: const Color(0xFF00D4AA).withOpacity(0.3),
+                          color: const Color(0xFF00D4AA).withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -415,7 +415,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF00D4AA).withOpacity(0.3),
+                                color: const Color(0xFF00D4AA).withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 6),
                               ),

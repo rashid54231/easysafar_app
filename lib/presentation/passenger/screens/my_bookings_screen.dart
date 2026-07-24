@@ -91,7 +91,7 @@ class MyBookingsScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: ClipRRect(
@@ -118,7 +118,7 @@ class MyBookingsScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
+                              color: statusColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
@@ -209,10 +209,16 @@ class MyBookingsScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: Colors.blue[50], shape: BoxShape.circle),
-            child: Icon(Icons.map_outlined, size: 80, color: Colors.blue[200]),
+          Image.asset(
+            'assets/images/empty_trips.png',
+            width: 150,
+            height: 150,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(color: Colors.blue[50], shape: BoxShape.circle),
+              child: Icon(Icons.map_outlined, size: 80, color: Colors.blue[200]),
+            ),
           ),
           const SizedBox(height: 20),
           const Text("No Journeys Found", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),

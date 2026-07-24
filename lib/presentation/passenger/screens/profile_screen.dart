@@ -277,16 +277,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
             clipBehavior: Clip.none,
             alignment: Alignment.center,
             children: [
-              Container(
-                height: 140,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue[900]!, Colors.blue[700]!],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(40)),
+                child: SizedBox(
+                  height: 140,
+                  width: double.infinity,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: Image.asset(
+                          'assets/images/profile_cover.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Colors.blue[900]!, Colors.blue[700]!],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.black.withValues(alpha: 0.4), Colors.blue[900]!.withValues(alpha: 0.5)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(40)),
                 ),
               ),
               Positioned(
@@ -298,7 +323,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 5),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)],
                         ),
                         child: CircleAvatar(
                           radius: 55,
@@ -359,7 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10)],
                   ),
                   child: Column(
                     children: [
@@ -367,7 +392,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                         leading: Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                          decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                           child: const Icon(Icons.phone, color: Colors.blue, size: 22),
                         ),
                         title: const Text("Phone Number", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
@@ -378,7 +403,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                         leading: Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                          decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                           child: const Icon(Icons.person_outline, color: Colors.blue, size: 22),
                         ),
                         title: const Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
@@ -402,7 +427,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       foregroundColor: Colors.red[700],
                       side: BorderSide(color: Colors.red[100]!, width: 2),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      backgroundColor: Colors.red[50]!.withOpacity(0.3),
+                      backgroundColor: Colors.red[50]!.withValues(alpha: 0.3),
                     ),
                   ),
                 ),
@@ -415,3 +440,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+

@@ -100,7 +100,7 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
           margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
           decoration: BoxDecoration(
             color: isSelected
-                ? Colors.white.withOpacity(0.15)
+                ? Colors.white.withValues(alpha: 0.15)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
@@ -144,7 +144,7 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
               margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Colors.white.withOpacity(0.15)
+                    ? Colors.white.withValues(alpha: 0.15)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -295,3 +295,4 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
     );
   }
 }
+
