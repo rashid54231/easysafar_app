@@ -7,8 +7,11 @@ import 'presentation/auth/screens/role_selection_screen.dart';
 import 'presentation/driver/screens/driver_main_wrapper.dart';
 import 'presentation/passenger/screens/passenger_home.dart';
 
+import 'presentation/onboarding/onboarding_screen.dart';
+
 class EasySafarApp extends StatelessWidget {
-  const EasySafarApp({super.key});
+  final bool showOnboarding;
+  const EasySafarApp({super.key, required this.showOnboarding});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +24,7 @@ class EasySafarApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Easysafar',
         theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
-        home: const AuthWrapper(),
+        home: showOnboarding ? const OnboardingScreen() : const AuthWrapper(),
       ),
     );
   }

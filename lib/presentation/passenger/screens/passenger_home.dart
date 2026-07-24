@@ -252,26 +252,66 @@ class _TripsListBodyState extends State<TripsListBody> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 25),
-          decoration: BoxDecoration(
-            color: Colors.blue[900],
-            borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
-          ),
-          child: Container(
-            decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(15)),
-            child: TextField(
-              onChanged: (val) => setState(() => searchQuery = val),
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: "Search destination...",
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                prefixIcon: const Icon(Icons.search_rounded, color: Colors.cyanAccent),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 15),
+        Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+                child: Image.asset(
+                  'assets/images/passenger_hero.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(color: Colors.blue[900]),
+                ),
               ),
             ),
-          ),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+                  gradient: LinearGradient(
+                    colors: [Colors.blue[900]!.withOpacity(0.9), Colors.blue[900]!.withOpacity(0.5)],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Where are you going?",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    ),
+                    child: TextField(
+                      onChanged: (val) => setState(() => searchQuery = val),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: "Search destination...",
+                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+                        prefixIcon: const Icon(Icons.search_rounded, color: Colors.cyanAccent),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         Expanded(
           child: StreamBuilder<List<Map<String, dynamic>>>(
@@ -297,32 +337,63 @@ class _TripsListBodyState extends State<TripsListBody> {
                     ),
                     child: Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, left: 20, right: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        ClipRRect(
+                          borderRadius: const BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
+                          child: Stack(
                             children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.calendar_month, size: 14, color: Colors.cyanAccent),
-                                  const SizedBox(width: 5),
-                                  Text(trip['departure_date'] ?? "Today", style: const TextStyle(color: Colors.white70)),
-                                ],
+                              Image.asset(
+                                'assets/images/trip_cover.png',
+                                height: 100,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Container(
+                                  height: 100,
+                                  color: Colors.black26,
+                                ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                height: 100,
                                 decoration: BoxDecoration(
-                                  color: Colors.blue[900]!.withOpacity(0.4),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.cyanAccent.withOpacity(0.3)),
+                                  gradient: LinearGradient(
+                                    colors: [Colors.transparent, Color(0xFF1C2331)],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
                                 ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 15, left: 20, right: 20),
                                 child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Icon(Icons.access_time_rounded, size: 14, color: Colors.cyanAccent),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      _formatTime(trip['departure_time']),
-                                      style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.calendar_month, size: 14, color: Colors.cyanAccent),
+                                          const SizedBox(width: 5),
+                                          Text(trip['departure_date'] ?? "Today", style: const TextStyle(color: Colors.white)),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue[900]!.withOpacity(0.8),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: Colors.cyanAccent.withOpacity(0.5)),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.access_time_rounded, size: 14, color: Colors.cyanAccent),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            _formatTime(trip['departure_time']),
+                                            style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),

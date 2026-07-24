@@ -121,55 +121,89 @@ class _DriverDashboardState extends State<DriverDashboard> {
             decoration: const BoxDecoration(
               color: Color(0xFF0F1624),
             ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-              decoration: BoxDecoration(
-                color: const Color(0xFF16213A),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF2C3E52), width: 1),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Hello Driver!",
-                        style: TextStyle(
-                          color: Color(0xFF5A7A9A),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        "Manage Your Trips",
-                        style: TextStyle(
-                          color: Color(0xFFE8F0FE),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  // Background Image
+                  Positioned.fill(
+                    child: Image.asset(
+                      'assets/images/driver_hero.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF16213A)),
+                    ),
                   ),
-                  GestureDetector(
-                    onTap: _refresh,
+                  // Dark Gradient Overlay
+                  Positioned.fill(
                     child: Container(
-                      width: 40,
-                      height: 40,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00D4AA).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF00D4AA).withOpacity(0.3),
-                          width: 1,
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            const Color(0xFF0F1624).withOpacity(0.9),
+                            const Color(0xFF0F1624).withOpacity(0.4),
+                          ],
                         ),
                       ),
-                      child: const Icon(
-                        Icons.refresh_rounded,
-                        color: Color(0xFF00D4AA),
-                        size: 20,
-                      ),
+                    ),
+                  ),
+                  // Content
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF2C3E52).withOpacity(0.5), width: 1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Hello Driver!",
+                              style: TextStyle(
+                                color: Color(0xFF00D4AA),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              "Manage Your Trips",
+                              style: TextStyle(
+                                color: Color(0xFFE8F0FE),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        GestureDetector(
+                          onTap: _refresh,
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF00D4AA),
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF00D4AA).withOpacity(0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.refresh_rounded,
+                              color: Color(0xFF0F1624),
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -286,21 +320,22 @@ class _DriverDashboardState extends State<DriverDashboard> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00D4AA).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: const Color(0xFF00D4AA).withOpacity(0.3),
-                    width: 1,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.asset(
+                  'assets/images/trip_cover.png',
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00D4AA).withOpacity(0.1),
+                      border: Border.all(color: const Color(0xFF00D4AA).withOpacity(0.3), width: 1),
+                    ),
+                    child: const Icon(Icons.directions_car_filled_rounded, color: Color(0xFF00D4AA)),
                   ),
-                ),
-                child: const Icon(
-                  Icons.directions_car_filled_rounded,
-                  color: Color(0xFF00D4AA),
-                  size: 24,
                 ),
               ),
               const SizedBox(width: 16),
@@ -354,21 +389,20 @@ class _DriverDashboardState extends State<DriverDashboard> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              color: const Color(0xFF00D4AA).withOpacity(0.08),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: const Color(0xFF00D4AA).withOpacity(0.2),
-                width: 1,
+          Image.asset(
+            'assets/images/empty_trips.png',
+            width: 160,
+            height: 160,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00D4AA).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFF00D4AA).withOpacity(0.2), width: 1),
               ),
-            ),
-            child: const Icon(
-              Icons.directions_bus_outlined,
-              size: 44,
-              color: Color(0xFF00D4AA),
+              child: const Icon(Icons.directions_bus_outlined, size: 44, color: Color(0xFF00D4AA)),
             ),
           ),
           const SizedBox(height: 16),

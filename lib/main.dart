@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'data/services/supabase_service.dart';
 import 'app.dart';
 
@@ -16,5 +17,8 @@ void main() async {
     debugPrint("WARNING: 'avatars' bucket not found. Create it in Supabase Dashboard > Storage.");
   }
 
-  runApp(const EasySafarApp());
+  final prefs = await SharedPreferences.getInstance();
+  final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+
+  runApp(EasySafarApp(showOnboarding: !hasSeenOnboarding));
 }

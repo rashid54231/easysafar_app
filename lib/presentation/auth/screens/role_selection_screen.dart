@@ -19,21 +19,13 @@ class RoleSelectionScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF00D4AA).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: const Color(0xFF00D4AA).withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.directions_bus_rounded,
-                        size: 32,
-                        color: Color(0xFF00D4AA),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        'assets/images/role_selection.png',
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
                       ),
                     ),
                     const SizedBox(height: 24),
