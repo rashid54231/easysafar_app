@@ -102,6 +102,28 @@ class MyBookingsScreen extends StatelessWidget {
               // Side Status Bar
               Container(width: 6, color: statusColor),
 
+              Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 16.0, bottom: 16.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Transform.scale(
+                    scale: 1.6,
+                    child: Image.asset(
+                      'assets/images/trip_cover.png',
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 80,
+                        height: 80,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.directions_car_filled_rounded, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),

@@ -347,16 +347,19 @@ class _TripsListBodyState extends State<TripsListBody> {
                             // Small Thumbnail Image
                             ClipRRect(
                               borderRadius: BorderRadius.circular(14),
-                              child: Image.asset(
-                                'assets/images/trip_cover.png',
-                                width: 110,
-                                height: 80,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  width: 110,
-                                  height: 80,
-                                  color: const Color(0xFF2C3E52),
-                                  child: const Icon(Icons.image_not_supported, color: Colors.white54),
+                              child: Transform.scale(
+                                scale: 1.6,
+                                child: Image.asset(
+                                  'assets/images/trip_cover.png',
+                                  width: 85,
+                                  height: 85,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Container(
+                                    width: 85,
+                                    height: 85,
+                                    color: const Color(0xFF2C3E52),
+                                    child: const Icon(Icons.image_not_supported, color: Colors.white54),
+                                  ),
                                 ),
                               ),
                             ),
