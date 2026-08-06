@@ -135,6 +135,52 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Hero Header Card
+            Container(
+              width: double.infinity,
+              height: 140,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset('assets/images/driver_hero.png', fit: BoxFit.cover),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [Colors.black.withValues(alpha: 0.75), Colors.transparent],
+                        ),
+                      ),
+                    ),
+                    const Positioned(
+                      bottom: 14,
+                      left: 16,
+                      right: 16,
+                      child: Row(
+                        children: [
+                          Icon(Icons.add_road_rounded, color: Color(0xFF00D4AA), size: 24),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "Create a Route & Start Earning",
+                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             const Text("Route Details", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 10),
             _buildTextField(_fromController, "From (Source)", Icons.trip_origin),

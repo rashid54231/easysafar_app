@@ -22,18 +22,27 @@ class PassengerChatListScreen extends StatelessWidget {
 
           final myBookings = snapshot.data!;
           if (myBookings.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.chat_bubble_outline_rounded, size: 64, color: Colors.white24),
-                  SizedBox(height: 16),
-                  Text(
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset(
+                      'assets/images/empty_trips.png',
+                      width: 150,
+                      height: 150,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.chat_bubble_outline_rounded, size: 64, color: Colors.white24),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
                     "No bookings yet",
                     style: TextStyle(color: Colors.white60, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     "Book a ride to chat with your driver",
                     style: TextStyle(color: Colors.white38, fontSize: 13),
                   ),

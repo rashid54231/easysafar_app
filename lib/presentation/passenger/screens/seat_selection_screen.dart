@@ -104,18 +104,52 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         children: [
           // Driver Side Header
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-            color: Colors.blue[900],
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF16213A),
+              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
+              border: Border(bottom: BorderSide(color: Colors.blue.withValues(alpha: 0.2), width: 2)),
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
+                Row(
                   children: [
-                    Icon(Icons.directions_car_filled, color: Colors.white.withValues(alpha: 0.5), size: 30),
-                    const Text("DRIVER", style: TextStyle(color: Colors.white, fontSize: 10)),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Transform.scale(
+                        scale: 1.5,
+                        child: Image.asset(
+                          'assets/images/trip_cover.png',
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.directions_car_filled, color: Colors.white54, size: 40),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("VEHICLE FRONT", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                        SizedBox(height: 2),
+                        Text("Driver Seat & Dashboard", style: TextStyle(color: Colors.white54, fontSize: 11)),
+                      ],
+                    ),
                   ],
                 ),
-                const Text("VEHICLE FRONT", style: TextStyle(color: Colors.white70, fontSize: 12, letterSpacing: 2)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(color: const Color(0xFF00D4AA).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.airline_seat_recline_normal, color: Color(0xFF00D4AA), size: 16),
+                      SizedBox(width: 4),
+                      Text("Select Seat", style: TextStyle(color: Color(0xFF00D4AA), fontSize: 11, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

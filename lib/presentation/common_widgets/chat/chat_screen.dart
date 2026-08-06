@@ -157,10 +157,25 @@ class _ChatScreenState extends State<ChatScreen> {
                 final messages = snapshot.data!;
 
                 if (messages.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      "Send a message to start chatting!",
-                      style: TextStyle(color: Colors.white54, fontSize: 15),
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset('assets/images/empty_trips.png', width: 140, height: 140, fit: BoxFit.contain),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "No Messages Yet",
+                          style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          "Send a message below to start chatting!",
+                          style: TextStyle(color: Colors.white54, fontSize: 13),
+                        ),
+                      ],
                     ),
                   );
                 }

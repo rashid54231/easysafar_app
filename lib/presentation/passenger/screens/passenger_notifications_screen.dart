@@ -52,20 +52,28 @@ class _PassengerNotificationsScreenState extends State<PassengerNotificationsScr
           }
 
           final notifications = provider.notifications;
-
           if (notifications.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_none_rounded, size: 64, color: Colors.white24),
-                  SizedBox(height: 16),
-                  Text(
-                    "No notifications yet",
-                    style: TextStyle(color: Colors.white60, fontSize: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset(
+                      'assets/images/empty_trips.png',
+                      width: 140,
+                      height: 140,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.notifications_none_rounded, size: 64, color: Colors.white24),
+                    ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 16),
+                  const Text(
+                    "No notifications yet",
+                    style: TextStyle(color: Colors.white60, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
                     "Booking updates will appear here",
                     style: TextStyle(color: Colors.white38, fontSize: 13),
                   ),

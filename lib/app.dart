@@ -8,6 +8,7 @@ import 'presentation/driver/screens/driver_main_wrapper.dart';
 import 'presentation/passenger/screens/passenger_home.dart';
 
 import 'presentation/onboarding/onboarding_screen.dart';
+import 'presentation/splash/splash_screen.dart';
 
 class EasySafarApp extends StatelessWidget {
   final bool showOnboarding;
@@ -24,7 +25,9 @@ class EasySafarApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Easysafar',
         theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
-        home: showOnboarding ? const OnboardingScreen() : const AuthWrapper(),
+        home: SplashScreen(
+          nextScreen: showOnboarding ? const OnboardingScreen() : const AuthWrapper(),
+        ),
       ),
     );
   }

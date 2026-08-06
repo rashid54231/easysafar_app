@@ -89,11 +89,60 @@ class _PassengerListScreenState extends State<PassengerListScreen> {
           final bookings = allData.where((b) => b['trip_id'].toString() == widget.tripId.trim()).toList();
 
           if (bookings.isEmpty) {
-            return const Center(child: Text("No bookings for this trip yet."));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset('assets/images/empty_trips.png', width: 150, height: 150, fit: BoxFit.contain),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text("No bookings for this trip yet.", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
+                  const SizedBox(height: 6),
+                  const Text("Passengers booking seats will appear here.", style: TextStyle(fontSize: 13, color: Colors.black54)),
+                ],
+              ),
+            );
           }
 
-          return ListView.builder(
-            itemCount: bookings.length,
+          return Column(
+            children: [
+              // Trip Route Header Banner
+              Container(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: [Colors.blue[900]!, Colors.blue[700]!]),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
+                ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Transform.scale(
+                        scale: 1.5,
+                        child: Image.asset('assets/images/trip_cover.png', width: 55, height: 55, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("${widget.source} ➔ ${widget.destination}", style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text("Total Passenger Requests: ${bookings.length}", style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: bookings.length,
             itemBuilder: (context, index) {
               final b = bookings[index];
               final String status = (b['status'] ?? 'pending').toString().toLowerCase();
@@ -143,9 +192,12 @@ class _PassengerListScreenState extends State<PassengerListScreen> {
                 ),
               );
             },
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
+  },
+),
+);
   }
 }

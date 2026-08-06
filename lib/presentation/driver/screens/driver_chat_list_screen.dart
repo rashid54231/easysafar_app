@@ -36,18 +36,27 @@ class DriverChatListScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00D4AA).withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: const Color(0xFF00D4AA).withValues(alpha: 0.2),
-                        width: 1,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset(
+                      'assets/images/empty_trips.png',
+                      width: 150,
+                      height: 150,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00D4AA).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: const Color(0xFF00D4AA).withValues(alpha: 0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Icon(Icons.chat_bubble_outline_rounded, size: 44, color: Color(0xFF00D4AA)),
                       ),
                     ),
-                    child: const Icon(Icons.chat_bubble_outline_rounded, size: 44, color: Color(0xFF00D4AA)),
                   ),
                   const SizedBox(height: 16),
                   const Text(
