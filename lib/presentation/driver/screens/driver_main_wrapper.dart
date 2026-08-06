@@ -241,7 +241,7 @@ class _DriverMainWrapperState extends State<DriverMainWrapper> {
                     height: 22,
                     child: Stack(
                       children: [
-                        Align(
+                        const Align(
                           alignment: Alignment.bottomLeft,
                           child: Icon(
                             Icons.notifications_outlined,

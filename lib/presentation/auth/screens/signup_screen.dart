@@ -317,15 +317,15 @@ class _SignupScreenState extends State<SignupScreen> {
                         const SizedBox(height: 12),
 
                         // Password hint — ✅ NO const on children list
-                        Row(
+                        const Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.info_outline_rounded,
                               size: 13,
                               color: Color(0xFF5A7A9A),
                             ),
-                            const SizedBox(width: 6),
-                            const Text(
+                            SizedBox(width: 6),
+                            Text(
                               'Minimum 6 characters required',
                               style: TextStyle(fontSize: 12, color: Color(0xFF5A7A9A)),
                             ),
@@ -383,19 +383,19 @@ class _SignupScreenState extends State<SignupScreen> {
                         const SizedBox(height: 24),
 
                         // Divider — ✅ NO const on children list
-                        Row(
+                        const Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Divider(color: Color(0xFF2C3E52), thickness: 0.8),
                             ),
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.symmetric(horizontal: 12),
                               child: Text(
                                 'or',
                                 style: TextStyle(fontSize: 12, color: Color(0xFF5A7A9A)),
                               ),
                             ),
-                            const Expanded(
+                            Expanded(
                               child: Divider(color: Color(0xFF2C3E52), thickness: 0.8),
                             ),
                           ],

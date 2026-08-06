@@ -29,9 +29,9 @@ class RoleSelectionScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Text(
+                    const Text(
                       AppStrings.appName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 38,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFFE8F0FE),
@@ -94,7 +94,7 @@ class RoleSelectionScreen extends StatelessWidget {
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => LoginScreen(role: 'driver'),
+                            builder: (_) => const LoginScreen(role: 'driver'),
                           ),
                         ),
                       ),
@@ -110,7 +110,7 @@ class RoleSelectionScreen extends StatelessWidget {
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => LoginScreen(role: 'passenger'),
+                            builder: (_) => const LoginScreen(role: 'passenger'),
                           ),
                         ),
                       ),

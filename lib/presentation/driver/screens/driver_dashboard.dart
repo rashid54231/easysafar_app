@@ -158,10 +158,10 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
+                        const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               "Hello Driver!",
                               style: TextStyle(
                                 color: Color(0xFF00D4AA),
@@ -169,8 +169,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            const Text(
+                            SizedBox(height: 4),
+                            Text(
                               "Manage Your Trips",
                               style: TextStyle(
                                 color: Color(0xFFE8F0FE),

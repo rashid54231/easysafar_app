@@ -155,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     try {
                       await AuthRepository().resetPassword(email);
-                      if (mounted) {
+                      if (context.mounted) {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -168,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       }
                     } catch (e) {
-                      if (mounted) {
+                      if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text("Error: $e"),
@@ -466,27 +466,27 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 24),
 
                         // Divider
-                        Row(
+                        const Row(
                           children: [
                             Expanded(
                               child: Divider(
-                                color: const Color(0xFF2C3E52),
+                                color: Color(0xFF2C3E52),
                                 thickness: 0.8,
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: EdgeInsets.symmetric(horizontal: 12),
                               child: Text(
                                 'or',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: const Color(0xFF5A7A9A),
+                                  color: Color(0xFF5A7A9A),
                                 ),
                               ),
                             ),
                             Expanded(
                               child: Divider(
-                                color: const Color(0xFF2C3E52),
+                                color: Color(0xFF2C3E52),
                                 thickness: 0.8,
                               ),
                             ),
